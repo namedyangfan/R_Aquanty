@@ -1,0 +1,15 @@
+rm(list = ls())
+library(tools) 
+
+setwd("C:/Users/fyang/Desktop")
+
+filename=("001.dat")
+
+d=read.table(filename, col.names = c("Head","Flow"), colClasses=c("character",rep("character",1)),header = FALSE, stringsAsFactors=FALSE)#read in the gauge reading
+
+d$newcol<-rep("20160101",nrow(d))
+
+D=d[,c(3,1,2)]
+names(D)[1]<-paste("Date")
+
+write.table(D,file=paste(file_path_sans_ext(filename),".txt"),quote = FALSE,row.names=FALSE,col.names=TRUE,append = FALSE)

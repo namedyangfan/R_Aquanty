@@ -1,0 +1,34 @@
+workdirectory<-("C:/Users/fyang/Desktop/TEST_Discharge")
+setwd(workdirectory)
+
+# filename=c(
+#   "05JG006_Daily_Flow_ts.csv"
+# )
+# 
+# DF=read.csv(file = filename,header = TRUE)
+# 
+# DT=data.table(Date=as.Date(DF$Date),Flow=DF$Flow)
+# 
+# DT_10yr=DT[Date>="1981/01/01" & Date<="2010-12-31",.(Date,Flow)][]
+# 
+# Discharge_func=ts_trapezint(DT_10yr$Date,DT_10yr$Flow)
+# 
+# discharge_in=Discharge_func(c("1981/01/01"),c("2010-12-31"))*86400
+# 
+filename=c(
+  "05JM001_Daily_Flow_ts.csv"
+)
+
+DF=read.csv(file = filename,header = TRUE)
+
+Date_year=format(as.Date(DF$Date),"%Y")
+
+DT=data.table(Date=as.Date(DF$Date),Flow=DF$Flow)
+
+DT_10yr=DT[Date>="1981/01/01" & Date<="2013-12-31",.(Date,Flow)][]
+
+Discharge_func=ts_trapezint(DT_10yr$Date,DT_10yr$Flow)
+
+discharge_out=Discharge_func(c("2011/01/01"),c("2011/12/30"))*86400
+
+# (discharge_out-discharge_in)/pcp
