@@ -12,7 +12,7 @@ library(tools)
 CONVERT_YMD_EXCEL_DATE<-function(x,time_origin=c('19000101')){
   
   YMD_time=as.Date(x)
-  EXCEL_DATE<-YMD_time-as.Date(time_origin,format="%Y%m%d")-1 #remove one more day
+  EXCEL_DATE<-YMD_time-as.Date(time_origin,format="%Y%m%d")+1 #remove one more day
   
 }
 
@@ -33,8 +33,8 @@ write_TECPLOT_column<-function(x,save_filename,tecplot_zone_name,tecplot_variabl
 }
 
 
-hydat_tecplot<-function(filename_list){
-  
+hydat_tecplot<-function(filename_list,to_excel_time=TRUE){
+### if the date is in %Y%M%D format, then "to_excel_time" should be TRUE
   
   setwd(workdirectory)
   
@@ -62,7 +62,9 @@ hydat_tecplot<-function(filename_list){
   
   
   ## calcualte the time different #assume the third column as date
-  d_V3_date=CONVERT_YMD_EXCEL_DATE(d[,3])
+  if (to_excel_time){d_V3_date=CONVERT_YMD_EXCEL_DATE(d[,3])}
+  else {d_V3_date=d[,3]}
+  
   
   
   #search for station name based on station number
@@ -84,24 +86,24 @@ hydat_tecplot<-function(filename_list){
 }
 
 
-workdirectory<-("C:/Users/fyang/Desktop/TEST_hourly/daily")
-
-###File list Bash commond:$ for F in *ts*; do echo \""$F"\",; done
-
-filename=c(
-  "BLUCHER4_daily.csv", "CONQUEST500_daily.csv", "DALMENY_daily.csv", "DUCK1_daily.csv",
-  "DUCK2_daily.csv", "GARDEN_daily.csv", "GOODALE_daily.csv", "HAGUE_daily.csv", "INSTOW_daily.csv",
-  "SASKATOON_daily.csv", "SWANSON_daily.csv", "TYNER_daily.csv", "VERLO_daily.csv",
-  "WARMAN2_daily.csv","SHAUN_daily.csv"
-  
-)
-
-missing_data_value=-999;
-summary_file=("All Stations.csv")
-save_filename=( "ORB_GWDAT.dat")
-file.remove(save_filename)         #Delete the preciouse run 
-lapply(filename,hydat_tecplot)
-
+# workdirectory<-("C:/Users/fyang/Desktop/TEST_hourly/daily")
+# 
+# ###File list Bash commond:$ for F in *ts*; do echo \""$F"\",; done
+# 
+# filename=c(
+#   "BLUCHER4_daily.csv", "CONQUEST500_daily.csv", "DALMENY_daily.csv", "DUCK1_daily.csv",
+#   "DUCK2_daily.csv", "GARDEN_daily.csv", "GOODALE_daily.csv", "HAGUE_daily.csv", "INSTOW_daily.csv",
+#   "SASKATOON_daily.csv", "SWANSON_daily.csv", "TYNER_daily.csv", "VERLO_daily.csv",
+#   "WARMAN2_daily.csv","SHAUN_daily.csv"
+#   
+# )
+# 
+# missing_data_value=-999;
+# summary_file=("All Stations.csv")
+# save_filename=( "ORB_GWDAT.dat")
+# file.remove(save_filename)         #Delete the preciouse run 
+# lapply(filename,hydat_tecplot)
+# 
 
 
 
