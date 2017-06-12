@@ -33,7 +33,7 @@ hydat_tecplot<-function(workdirectory,filename_list,summary_file,save_filename){
 
     d_V3_day<-paste(d_V3,'01',sep="")# assume start from the first day of the month
 
-    d_V3_date<-as.Date(as.character(d_V3_day),format="%Y%m%d")-as.Date(as.character(time_origin),format="%Y%m%d")+1 #add one more day
+    d_V3_date<-as.Date(as.character(d_V3_day),format="%Y%m%d")-as.Date(as.character(time_origin),format="%Y%m%d")+2 #add two more day
     #search for station name based on station number
     station_num=d$ID[1]
     station_name_index=which(n$V1==station_num)
@@ -63,13 +63,7 @@ hydat_tecplot<-function(workdirectory,filename_list,summary_file,save_filename){
 
 workdirectory<-("C:/Users/fyang/Desktop/TEST_Discharge/test")
 
-# filename=c(
-#   "05JE006.csv", "05JF001.csv", "05JK002.csv", "05JK007.csv", "05JM001.csv",
-#   "05MD004.csv", "05MH005.csv", "05MJ001.csv", "05NB001.csv", "05NB036.csv",
-#   "05ND010.csv", "05NF012.csv", "05NG001.csv", "05NG024.csv", "05JG006.csv"
-# )
 
-#
 filename=c(
 
   "05NB001.csv",

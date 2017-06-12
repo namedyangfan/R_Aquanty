@@ -12,7 +12,7 @@ library(tools)
 CONVERT_YMD_EXCEL_DATE<-function(x,time_origin=c('19000101')){
   
   YMD_time=as.Date(x)
-  EXCEL_DATE<-YMD_time-as.Date(time_origin,format="%Y%m%d")+1 #remove one more day
+  EXCEL_DATE<-YMD_time-as.Date(time_origin,format="%Y%m%d")+2 #add two more day, one as 19000101, another one as leap year in Feb 1900
   
 }
 

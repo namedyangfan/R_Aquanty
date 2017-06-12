@@ -44,15 +44,16 @@ burn_landcover_raster<-function(polyline, rasterfile, burn_value=100,unique_valu
 }
 
 
-setwd("C:/Users/fyang/Desktop/South_Nation_UTM18")
-l<-shapefile(x="Int_Hyd_Stm_Strl7_3_Simp200_dis.shp")
+setwd("C:/Users/fyang/Desktop/ARB_Landcover_May26_2017")
+l<-shapefile(x="HS_2000_Sim_Strm_200_UTM_dislvd")
 my_raster<- list.files(pattern='\\.asc$', full.names=TRUE) ############## This is to read your raster as a list
-my_raster<-("nalcms_250m_4hgs.asc")
+my_raster<-("corrected_landcover_900.asc")
 r <- raster(my_raster, crs=crs(l))
 
 burn_landcover_raster(polyline = l,
                       rasterfile = r,
                       burn_value=18,
                       thickenraster=TRUE,
-                      thicken_cellsize=2,
-                      savefilename="corrected_landcover1.asc")
+                      thicken_cellsize=9,
+                      unique_value=1000,
+                      savefilename="corrected_landcover_thicken.asc")
