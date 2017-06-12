@@ -193,7 +193,7 @@ potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,saving_data_file_pa
 
     setwd("potential_snow_melt_raster")
 
-    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_monthly_2009_2013_average_",mod, sep=""), format = "ascii",overwrite=TRUE)
+    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
   }
 
@@ -314,6 +314,9 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
 
 
 
+
+
+# plot --------------------------------------------------------------------
 
 
 ##below is  for water balance plot
@@ -454,10 +457,15 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
 
 }
 
+
+# combine rain snow -------------------------------------------------------
+
+
 combine_rain_snow <- function(mods,
                               save_filename='final_liquid_',
                               saving_data_file_path,
-                              crs){
+                              crs,
+                              conversion_factor=1){
   
   for (mod in mods){
     
@@ -476,7 +484,7 @@ combine_rain_snow <- function(mods,
     snowmelt_array<-snowmelt_raster[]
     
     combine_rain_snowmelt_raster=rain_raster
-    combine_rain_snowmelt_raster[]=snowmelt_raster[]+rain_raster[]
+    combine_rain_snowmelt_raster[]=snowmelt_raster[] + rain_raster[]
     
     setwd("../")
     dir.create("combine_rain_snowmelt",showWarnings = FALSE)
@@ -489,14 +497,36 @@ combine_rain_snow <- function(mods,
   }
   
   
-  
-  
 }
 
-
-
-
-
+snow_depth_unit_conversion <- function(mod,
+                                       save_filename = 'final_snowdepth_',
+                                       saving_data_file_path,
+                                       crs,
+                                       conversion_factor=1){
+  
+  p = file.path(saving_data_file_path, 'final_accumulative_snow_accumulation_raster' )
+  setwd(p)
+  print(p)
+  my_raster<- list.files( path = p, pattern=mod)
+  print(my_raster)
+  snowdepth_raster<-raster(my_raster, crs=crs)
+  snowdepth_array<-snowdepth_raster[]
+  
+  
+  snowdepth_raster[] = snowdepth_array * conversion_factor # convert the unit of snow depth
+  
+  setwd("../")
+  dir.create("final_snowdepth_unit_conversion",showWarnings = FALSE)
+  setwd("final_snowdepth_unit_conversion")
+  
+  writeRaster(snowdepth_raster, 
+              file=paste(save_filename,mod, sep=""), 
+              format = "ascii",overwrite=TRUE)
+  
+}
+  
+ 
 
 
 
