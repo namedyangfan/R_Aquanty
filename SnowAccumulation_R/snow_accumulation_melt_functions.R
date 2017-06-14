@@ -8,22 +8,26 @@ write_weighted_temp_raster<-function(mods,crs,tmax_file_path,tmin_file_path,weig
   setwd(tmax_file_path)
 
   my_raster<- list.files(pattern=mods[1]) ############## This is to read your raster as a list
-  Tmax<-raster(my_raster,  crs)
+  
+  Tmax<-raster(my_raster,  crs=crs)
 
   weighted_coef_accumulation_array=Tmax[]
   weighted_coef_accumulation_array[]=weighted_coef ##initialize the weighted coef array
   weighted_temp_raster=Tmax  ##initialize the weighted coef raster
 
 
-     for (j in 1:length(mods)){
+     for (mod in mods){
 
-      tmax<- list.files(path=tmax_file_path,pattern=mods[j])
-      tmin<- list.files(path=tmin_file_path,pattern=mods[j])
-
+      tmax<- list.files(path=tmax_file_path,pattern=mod)
+      tmin<- list.files(path=tmin_file_path,pattern=mod)
+      
+      print(tmax)
+      print(tmin)
+      
       setwd(tmax_file_path)
-      tmax_raster<- raster(tmax, crs)
+      tmax_raster<- raster(tmax, crs = crs)
       setwd(tmin_file_path)
-      tmin_raster<- raster(tmin, crs)
+      tmin_raster<- raster(tmin, crs = crs)
 
       tmax_array=tmax_raster[]
 
@@ -37,10 +41,42 @@ write_weighted_temp_raster<-function(mods,crs,tmax_file_path,tmin_file_path,weig
       dir.create("weighted_temp_raster",showWarnings = FALSE)
       setwd("weighted_temp_raster")
 
-      writeRaster(weighted_temp_raster, file=paste("final_05weightedtemperature_",j, sep=""), format = "ascii",overwrite=TRUE)
+      writeRaster(weighted_temp_raster, file=paste("final_05weightedtemperature_",mod, sep=""), format = "ascii",overwrite=TRUE)
 
      }
 
+}
+
+average_weighted_temp_raster<-function(x,
+                                       mods, 
+                                       crs,
+                                       weighted_temp_raster_file_path,
+                                       le = 2){
+  
+  file_path = paste(weighted_temp_raster_file_path,"/weighted_temp_raster",sep="")
+  
+  f_names = sapply(mods, function(x){
+                    list.files(path= file_path, pattern = x, full.names = TRUE )},
+                    USE.NAMES = FALSE)
+  
+    x_index=which(mods == x)
+
+    if ( length(x_index) ==0){ print('no match mods')}
+    
+    stack_files = f_names[(x_index-le):x_index]
+    
+    r_stack = stack(stack_files)
+    
+    crs(r_stack) = crs
+    
+    r_mean = stackApply(r_stack,fun = mean, indices = rep(1, nlayers(r_stack)))
+    
+    setwd(weighted_temp_raster_file_path)
+    dir.create("averaged_weighted_temperature",showWarnings = FALSE)
+    writeRaster(r_mean, 
+                file=paste("./averaged_weighted_temperature/averaged_weighted_temp",x, sep=""), format = "ascii",overwrite=TRUE)
+    
+    
 }
 
 potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
@@ -193,7 +229,7 @@ potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,saving_data_file_pa
 
     setwd("potential_snow_melt_raster")
 
-    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "GTiff",overwrite=TRUE)
+    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "ascii",overwrite=TRUE)
 
   }
 
@@ -214,7 +250,7 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
   st=c()
   st_sum=c()
   sm_sum=c()
-  
+  print(mods)
   #initilize snow carried over from last month (final_snow_accumulation_array_1)
   final_snow_accumulation_array_1=0 
 
@@ -311,151 +347,8 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
     writeRaster(snow_accumulation_sublimation_raster, file=paste("snow_melt_raster_sublimation_",mod, sep=""), format = "ascii",overwrite=TRUE)
 
   }
-
-
-
-
-
-# plot --------------------------------------------------------------------
-
-
-##below is  for water balance plot
-  
-  # monthly_rain=c()
-  # 
-  # accumulative_monthly_rain=c()
-  # 
-  # monthly_pcp=c()
-  # 
-  # accumulative_monthly_pcp=c()
-  # 
-  # monthly_temp=c()
-
-  # for (j in 1:length(mods)){
-  # 
-  #   #calcualte the accumulative rain
-  # 
-  #   setwd(paste(saving_data_file_path,"/potential_rain_accumulation",sep=""))
-  # 
-  #   my_raster<- list.files(pattern=mods[j])
-  # 
-  #   monthly_rain_raster<-raster(my_raster, crs=crs)
-  # 
-  #   monthly_rain_array=monthly_rain_raster[]*0.001#*30*86400 #convert from m/s to m/month
-  # 
-  # 
-  #   monthly_rain_array[which(monthly_rain_array<0)]=NA
-  # 
-  # 
-  #   monthly_rain[j]=sum(monthly_rain_array, na.rm=TRUE)
-  # 
-  # 
-  #   accumulative_monthly_rain[j]=sum(monthly_rain[1:j])
-  # 
-  #   # calcualte the accumualtive pcp
-  # 
-  #   setwd(pcp_file_path)
-  # 
-  #   my_raster<- list.files(pattern=mods[j])
-  # 
-  #   monthly_pcp_raster<-raster(my_raster, crs=crs)
-  # 
-  #   monthly_pcp_array=monthly_pcp_raster[]*0.001#*30*86400
-  # 
-  #   monthly_pcp_array[which(monthly_pcp_array<0)]=NA
-  # 
-  #   monthly_pcp[j]=sum(monthly_pcp_array, na.rm=TRUE)
-  # 
-  #   accumulative_monthly_pcp[j]=sum(monthly_pcp[1:j])
-  # 
-  #   # calcualte the average weighted temperature
-  #   setwd(paste(saving_data_file_path,"/weighted_temp_raster",sep=""))
-  # 
-  #   my_raster<- list.files(pattern=mods[j])
-  # 
-  #   monthly_temp_raster<-raster(my_raster, crs=crs)
-  # 
-  #   monthly_temp_array=monthly_temp_raster[]
-  # 
-  #   monthly_temp_array[which(monthly_temp_array==-9999)]=NA
-  # 
-  #   monthly_temp[j]=mean(monthly_temp_array,na.rm=TRUE)
-  # 
-  # }
-  # cat("accumulative_monthly_pcp\n")
-  # print(accumulative_monthly_pcp)
-  # cat("accumulative_monthly_rain\n")
-  # print(accumulative_monthly_rain)
-  # cat("snow melt\n")
-  # print(sm_sum)
-  # cat("sm depth\n")
-  # print(sa)
-  # #print(monthly_temp)
-  # 
-  # setwd(saving_data_file_path)
-
-
-        # fname<-("Water Balance.png")
-        # png(filename=fname)
-        # par(mar = c(5.1, 4.1, 8.1, 8.1) + 0.3,xpd=TRUE,new= FALSE) ##control plotting area
-        # plot(c(6,18),c(0,4730),type="n", xaxt = "n", xlab="month", ylab="SWE") #x,y limit
-        # labellist=c(6,7,8,9,10,11,12,1,2,3,4,5)
-        # axis(1,at=6:17,labels=labellist)
-        # lines(6:17, accumulative_monthly_pcp, col="red")
-        # lines(6:17, accumulative_monthly_rain, col="blue")
-        # lines(6:17, sa*0.001, col="black") #snow depth
-        # lines(6:17, sm_sum*0.001, col="orange") #snow melt
-        # par(new = TRUE,xpd=TRUE)
-        # plot(c(6,18),c(-30,30),type="n", axes = FALSE, bty = "n", xlab = "", ylab = "") #x,y limit
-        # lines(6:17, monthly_temp, col="pink") #temperature
-        # axis(side=4, at = pretty(range(-30,30)),col = "pink")
-        # mtext("Temp (degree C)", side=4, line=3,col = "pink")
-        # legend("topright",inset=c(0.0,-0.4), ##off set y
-        #        title="Legend",
-        #        c("accumulative Preciptation","accumulative Rain","Snow Depth(with melting)","accumulative snow melt","mean temp"),
-        #        lty=c(1,1),
-        #        col=c("red","blue","black","orange","pink"),
-        #        bg="grey96")
-        # dev.off()
-
-
-
-        # fname<-("Accumulative monthly comparison.png")
-        # png(filename=fname)
-        # plot(c(6,18),c(0,0.06),type="n", xaxt = "n", xlab="month", ylab="SWE")
-        # labellist=c(6,7,8,9,10,11,12,1,2,3,4,5)
-        # axis(1,at=6:17,labels=labellist)
-        # lines(6:17, st_sum, col="red")
-        # lines(6:17, sa, col="blue")
-        # lines(6:17, sm_sum, col="black")
-        # legend("topright",
-        #        title="Legend",
-        #        c("Snow Depth (without melting)","Snow Depth(with melting)","accumulative snow melt"),
-        #        lty=c(1,1),
-        #        col=c("red","blue","black"),
-        #        bg="grey96")
-        # dev.off()
-
-        #
-        #
-        # filename<- paste("monthly comparison",".png")
-        # png(file=filename)
-        # plot(c(6,18),c(0,0.06),type="n", xaxt = "n", xlab="month", ylab="SWE")
-        # labellist=c(6,7,8,9,10,11,12,1,2,3,4,5)
-        # axis(1,at=6:17,labels=labellist)
-        # lines(6:17, st, col="red")
-        # lines(6:17, sa, col="blue")
-        # lines(6:17, sm, col="black")
-        # legend("topright",
-        #        title="Legend",
-        #        c("monthly snow accumulation potential (without melting)","accumulative snow accumulation (with melting)","monthly snow melt"),
-        #        lty=c(1,1),
-        #        col=c("red","blue","black"),
-        #        bg="grey96")
-        # dev.off()
-
-
 }
+
 
 
 # combine rain snow -------------------------------------------------------
@@ -525,12 +418,3 @@ snow_depth_unit_conversion <- function(mod,
               format = "ascii",overwrite=TRUE)
   
 }
-  
- 
-
-
-
-
-
-
-
