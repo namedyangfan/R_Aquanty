@@ -60,7 +60,8 @@ parLapply(cl, mods, potential_snow_accumulation_rain_accumulation,
           lower_T_thresh=lower_T_thresh,
           crs=crs,
           weighted_temp_raster_file_path=saving_data_file_path,
-          pcp_file_path=pcp_file_path)
+          pcp_file_path=pcp_file_path,
+          temp_foldername = 'averaged_weighted_temperature')
 
 
 parLapply(cl, mods, potential_snow_melt,
@@ -75,12 +76,16 @@ stopCluster(cl)
 
 # Single file -------------------------------------------------------------
 
-# potential_snow_accumulation_rain_accumulation(upper_T_thresh,
-#                                               lower_T_thresh,
-#                                               crs=crs,
-#                                               mods,
-#                                               weighted_temp_raster_file_path=saving_data_file_path,
-#                                               pcp_file_path=pcp_file_path)
+lapply(mods[3:length(mods)], average_weighted_temp_raster, mods = mods, crs = crs, weighted_temp_raster_file_path = saving_data_file_path)
+
+
+potential_snow_accumulation_rain_accumulation(upper_T_thresh,
+                                              lower_T_thresh,
+                                              crs=crs,
+                                              mods,
+                                              weighted_temp_raster_file_path=saving_data_file_path,
+                                              pcp_file_path=pcp_file_path,
+                                              temp_foldername = 'averaged_weighted_temperature')
 
 # potential_snow_melt(metlt_constant,
 #                     T_melt,
