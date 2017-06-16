@@ -41,7 +41,7 @@ write_weighted_temp_raster<-function(mods,crs,tmax_file_path,tmin_file_path,weig
       dir.create("weighted_temp_raster",showWarnings = FALSE)
       setwd("weighted_temp_raster")
 
-      writeRaster(weighted_temp_raster, file=paste("final_05weightedtemperature_",mod, sep=""), format = "ascii",overwrite=TRUE)
+      writeRaster(weighted_temp_raster, file=paste("final_05weightedtemperature_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
      }
 
@@ -190,27 +190,29 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
         setwd(weighted_temp_raster_file_path)
         dir.create("potential_rain_accumulation",showWarnings = FALSE)
         setwd("potential_rain_accumulation")
-        writeRaster(rain_accumulation_raster, file=paste("rain_accumulation_monthly_2009_2013_average_",mod, sep=""), format = "ascii",overwrite=TRUE)
+        writeRaster(rain_accumulation_raster, file=paste("rain_accumulation_monthly_2009_2013_average_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
 
         ##save potential snow accumulation raster
         setwd("../")
         dir.create("potential_snow_accumulation",showWarnings = FALSE)
         setwd("potential_snow_accumulation")
-        writeRaster(snow_accumulation_raster, file=paste("snow_accumulation_monthly_2009_2013_average_",mod, sep=""), format = "ascii",overwrite=TRUE)
+        writeRaster(snow_accumulation_raster, file=paste("snow_accumulation_monthly_2009_2013_average_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
       }
 }
 
 
 
-potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,saving_data_file_path){
+potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,saving_data_file_path, temp_foldername){
 
 
 
   for (mod in mods){
+    
+    wd=paste(saving_data_file_path,"/",temp_foldername,sep="")
 
-    setwd(paste(saving_data_file_path,"/weighted_temp_raster",sep=""))
+    setwd(wd)
 
     my_raster<- list.files(pattern=mod)
 
@@ -232,7 +234,7 @@ potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,saving_data_file_pa
 
     setwd("potential_snow_melt_raster")
 
-    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "ascii",overwrite=TRUE)
+    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
   }
 
@@ -254,6 +256,7 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
   st_sum=c()
   sm_sum=c()
   print(mods)
+  
   #initilize snow carried over from last month (final_snow_accumulation_array_1)
   final_snow_accumulation_array_1=0 
 
@@ -341,13 +344,13 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
     setwd("../")
     dir.create("final_snow_melt_raster",showWarnings = FALSE)
     setwd("final_snow_melt_raster")
-    writeRaster(final_snow_melt_raster, file=paste("snow_melt_raster_",mod, sep=""), format = "ascii",overwrite=TRUE)
+    writeRaster(final_snow_melt_raster, file=paste("snow_melt_raster_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
-    snow_accumulation_sublimation_raster[]=final_snow_accumulation_array_1_mmonth*(1-sublimation_constant)
-    setwd("../")
-    dir.create("final_snow_accumulation_raster_sublimation",showWarnings = FALSE)
-    setwd("final_snow_accumulation_raster_sublimation")
-    writeRaster(snow_accumulation_sublimation_raster, file=paste("snow_melt_raster_sublimation_",mod, sep=""), format = "ascii",overwrite=TRUE)
+    # snow_accumulation_sublimation_raster[]=final_snow_accumulation_array_1_mmonth*(1-sublimation_constant)
+    # setwd("../")
+    # dir.create("final_snow_accumulation_raster_sublimation",showWarnings = FALSE)
+    # setwd("final_snow_accumulation_raster_sublimation")
+    # writeRaster(snow_accumulation_sublimation_raster, file=paste("snow_melt_raster_sublimation_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
   }
 }

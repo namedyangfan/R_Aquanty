@@ -55,20 +55,28 @@ a<-clusterEvalQ(cl, library(raster))
 #                            saving_data_file_path,
 #                            weighted_coef)
 
+# parLapply(cl, mods[3:length(mods)], 
+#        average_weighted_temp_raster, 
+#        mods = mods, 
+#        crs = crs, 
+#        weighted_temp_raster_file_path = saving_data_file_path)
+
+
 parLapply(cl, mods, potential_snow_accumulation_rain_accumulation,
           upper_T_thresh=upper_T_thresh,
           lower_T_thresh=lower_T_thresh,
           crs=crs,
           weighted_temp_raster_file_path=saving_data_file_path,
           pcp_file_path=pcp_file_path,
-          temp_foldername = 'averaged_weighted_temperature')
+          temp_foldername = 'weighted_temp_raster')
 
 
 parLapply(cl, mods, potential_snow_melt,
           T_melt=T_melt,
           crs=crs,
           metlt_constant=metlt_constant,
-          saving_data_file_path=saving_data_file_path)
+          saving_data_file_path=saving_data_file_path,
+          temp_foldername = 'averaged_weighted_temperature')
 
 
 stopCluster(cl)
@@ -76,7 +84,12 @@ stopCluster(cl)
 
 # Single file -------------------------------------------------------------
 
-lapply(mods[3:length(mods)], average_weighted_temp_raster, mods = mods, crs = crs, weighted_temp_raster_file_path = saving_data_file_path)
+
+lapply(mods[3:length(mods)], 
+       average_weighted_temp_raster, 
+       mods = mods, 
+       crs = crs, 
+       weighted_temp_raster_file_path = saving_data_file_path)
 
 
 potential_snow_accumulation_rain_accumulation(upper_T_thresh,
