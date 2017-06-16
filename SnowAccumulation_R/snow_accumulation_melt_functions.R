@@ -65,6 +65,8 @@ average_weighted_temp_raster<-function(x,
     
     stack_files = f_names[(x_index-le):x_index]
     
+    print(stack_files)
+    
     r_stack = stack(stack_files)
     
     crs(r_stack) = crs
@@ -84,12 +86,13 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
                                                         crs,
                                                         mods,
                                                         weighted_temp_raster_file_path,
-                                                        pcp_file_path){
+                                                        pcp_file_path,
+                                                        temp_foldername = 'weighted_temp_raster'){
 
 
       for (mod in mods){
         print(mod)
-        wd=paste(weighted_temp_raster_file_path,"/weighted_temp_raster",sep="")
+        wd=paste(weighted_temp_raster_file_path,"/",temp_foldername,sep="")
 
         setwd(wd)
 
