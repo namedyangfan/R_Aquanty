@@ -87,26 +87,24 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
                                                         mods,
                                                         weighted_temp_raster_file_path,
                                                         pcp_file_path,
-                                                        temp_foldername = 'weighted_temp_raster'){
+                                                        temp_foldername = 'weighted_temp_raster',
+                                                        ldebug = FALSE){
 
 
       for (mod in mods){
-        print(mod)
+        if (ldebug){print(mod)}
         wd=paste(weighted_temp_raster_file_path,"/",temp_foldername,sep="")
-
         setwd(wd)
 
         my_raster<- list.files(pattern=mod)
-        print(my_raster)
-
+        if (ldebug){print(my_raster)}
 
         accumulation_weighted_temp_raster<-raster(my_raster, crs = crs )
+        if (ldebug){print("able to open raster")}
 
         snow_accumulation_raster=accumulation_weighted_temp_raster   ##initialize snow accumulation raster
 
         rain_accumulation_raster=accumulation_weighted_temp_raster   ##initialize rain accumulation raster
-
-
 
         T_array=accumulation_weighted_temp_raster[] #array for weighted temp
 
@@ -127,77 +125,74 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
         snow_index=which(T_array<=(lower_T_thresh))
 
         snow_rain_index=which(T_array>=(lower_T_thresh) & T_array<=upper_T_thresh)
+        
+        if (ldebug){print("able to get rain and snow index")}
 
         ###################### read pcp data
         setwd(pcp_file_path)
         pcp<- list.files(pattern=mod)
-        print(pcp)
+        if (ldebug){print(pcp)}
         pcp_raster<- raster(pcp, crs = crs)
+        if (ldebug){print("able to open the pcp raster")}
 
 
         ###################### snow accumulation
         s_array[snow_index]=pcp_raster[snow_index]
 
-
-
-
         #####################  rain accumualtion
         r_array[rain_index]=pcp_raster[rain_index]
 
-
-
         #####################  snow rain mixed
-        ##rain
+          ##rain
 
-        s_r_array[snow_rain_index]=pcp_raster[snow_rain_index]*((T_array[snow_rain_index]-lower_T_thresh)/(upper_T_thresh-lower_T_thresh))
-
-        if(upper_T_thresh!=0&lower_T_thresh!=0){
-
-          r_array2=r_array+s_r_array
-
-        }
-        else{
-
-          print("upper T melt = lower T melt")
-
-          r_array2=r_array
-
-        }
-        rain_accumulation_raster[]=r_array2
-
-
-
-
-        ##snow
-        s_r_array[snow_rain_index]=pcp_raster[snow_rain_index]-s_r_array[snow_rain_index]
+          s_r_array[snow_rain_index]=pcp_raster[snow_rain_index]*((T_array[snow_rain_index]-lower_T_thresh)/(upper_T_thresh-lower_T_thresh))
+  
+          # if upper_T_thresh does not equal to lower_T_thresh
+          if(upper_T_thresh != lower_T_thresh){
+  
+            r_array2=r_array+s_r_array
+  
+          }
+          else{
+  
+            print("upper T melt = lower T melt")
+  
+            r_array2=r_array
+  
+          }
+          rain_accumulation_raster[]=r_array2
 
 
-        if(upper_T_thresh!=0&lower_T_thresh!=0){
-
-          s_array2=s_array+s_r_array
-
-        }
-        else{
-
-          s_array2=s_array
-
-        }
-
-        snow_accumulation_raster[]=s_array2
+          ##snow
+          s_r_array[snow_rain_index]=pcp_raster[snow_rain_index]-s_r_array[snow_rain_index]
+  
+  
+          if(upper_T_thresh != lower_T_thresh){
+  
+            s_array2=s_array+s_r_array
+  
+          }
+          else{
+  
+            s_array2=s_array
+  
+          }
+  
+          snow_accumulation_raster[]=s_array2
 
 
         ##save potential rain accumulation raster
         setwd(weighted_temp_raster_file_path)
         dir.create("potential_rain_accumulation",showWarnings = FALSE)
         setwd("potential_rain_accumulation")
-        writeRaster(rain_accumulation_raster, file=paste("rain_accumulation_monthly_2009_2013_average_",mod, sep=""), format = "GTiff",overwrite=TRUE)
+        writeRaster(rain_accumulation_raster, file=paste("rain_accumulation_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
 
         ##save potential snow accumulation raster
         setwd("../")
         dir.create("potential_snow_accumulation",showWarnings = FALSE)
         setwd("potential_snow_accumulation")
-        writeRaster(snow_accumulation_raster, file=paste("snow_accumulation_monthly_2009_2013_average_",mod, sep=""), format = "GTiff",overwrite=TRUE)
+        writeRaster(snow_accumulation_raster, file=paste("snow_accumulation_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
       }
 }
@@ -337,7 +332,7 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
     setwd("../")
     dir.create("final_accumulative_snow_accumulation_raster",showWarnings = FALSE)
     setwd("final_accumulative_snow_accumulation_raster")
-    writeRaster(snow_accumulation_raster, file=paste("snow_depth_",mod, sep=""), format = "ascii",overwrite=TRUE)
+    writeRaster(snow_accumulation_raster, file=paste("snow_depth_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
 
     final_snow_melt_raster[]=final_snow_melt_array
