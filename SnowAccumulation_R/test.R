@@ -142,12 +142,12 @@ parLapply(cl, mods, combine_rain_snow,
           )
 
 
-# parLapply(cl, mods, snow_depth_unit_conversion,
-#           save_filename= 'final_snowdepth_',
-#           saving_data_file_path=saving_data_file_path,
-#           crs=crs,
-#           conversion_factor = 86400 #m/s to m
-#           )
+parLapply(cl, mods, snow_depth_unit_conversion,
+          save_filename= 'final_snowdepth_',
+          saving_data_file_path=saving_data_file_path,
+          crs=crs,
+          conversion_factor = 86400 #m/s to m
+          )
 
 
 
