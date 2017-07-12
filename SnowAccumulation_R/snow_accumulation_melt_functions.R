@@ -3,7 +3,7 @@
 ### the below create weighted temperature raster that can be used to determine snow accumulation
 ### the input raster required are "T_max", "T_min"
 
-write_weighted_temp_raster<-function(mods,crs,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef){
+write_weighted_temp_raster<-function(crs,mods,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef){
 
   setwd(tmax_file_path)
 
@@ -50,35 +50,58 @@ write_weighted_temp_raster<-function(mods,crs,tmax_file_path,tmin_file_path,weig
 average_weighted_temp_raster<-function(x,
                                        mods, 
                                        crs,
-                                       weighted_temp_raster_file_path,
-                                       le = 2){
+                                       weighted_temp_raster_folder_path,
+                                       weighted_temp_raster_folder_name = "weighted_temp_raster",
+                                       le = 2,
+                                       ldebug = FALSE){
   
-  file_path = paste(weighted_temp_raster_file_path,"/weighted_temp_raster",sep="")
   
+  file_path = file.path(weighted_temp_raster_folder_path,weighted_temp_raster_folder_name)
+  if (!file.exists(file_path)){
+    print(file_path)
+    stop("ERROR: directory does not exist")
+    }
+  # f_names get all the files that match the modes in a sequential order
   f_names = sapply(mods, function(x){
                     list.files(path= file_path, pattern = x, full.names = TRUE )},
                     USE.NAMES = FALSE)
   
-    x_index=which(mods == x)
+  #xindex: locate the index of file x, so we knew which other files are required to calcualte the average  
+  x_index=which(mods == x)
 
-    if ( length(x_index) ==0){ print('no match mods')}
+    if ( length(x_index) ==0){ 
+      stop("ERROR: Not able to match x in mods")
+    }
+    
+    if ( x_index <= le){ 
+      print("ERROR: There is not enough data to calculate the backward average of x:%s /n")
+      print(paste("x_index:",x_index))
+      print(paste("le:",le))
+      stop("make sure le is smaller than the x_index/n")
+    }
     
     stack_files = f_names[(x_index-le):x_index]
     
-    print(stack_files)
+    if(ldebug){print(stack_files)}
     
-    r_stack = stack(stack_files)
+    results <- tryCatch(
+      {r_stack = stack(stack_files)
+      }, error = function(err){
+        print(stack_files)
+        stop("unable to stack the above raster files")
+      }
+    )
+    
     
     crs(r_stack) = crs
     
     r_mean = stackApply(r_stack,fun = mean, indices = rep(1, nlayers(r_stack)))
     
-    setwd(weighted_temp_raster_file_path)
+    setwd(weighted_temp_raster_folder_path)
     dir.create("averaged_weighted_temperature",showWarnings = FALSE)
     writeRaster(r_mean, 
                 file=paste("./averaged_weighted_temperature/averaged_weighted_temp",x, sep=""), format = "ascii",overwrite=TRUE)
-    
-    
+    return(TRUE)
 }
 
 potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
@@ -93,7 +116,8 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
 
       for (mod in mods){
         if (ldebug){print(mod)}
-        wd=paste(weighted_temp_raster_file_path,"/",temp_foldername,sep="")
+        
+        wd=file.path(weighted_temp_raster_file_path,temp_foldername)
         setwd(wd)
 
         my_raster<- list.files(pattern=mod)
@@ -111,8 +135,6 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
         s_array=snow_accumulation_raster[] #array for potential snow accumulation
 
         r_array=snow_accumulation_raster[] #array for potential rain accumulation
-
-
 
         r_array[]=0
 
@@ -199,20 +221,28 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
 
 
 
-potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,saving_data_file_path, temp_foldername){
-
-
+potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,work_directory, temp_foldername, ldebug=TRUE){
 
   for (mod in mods){
     
-    wd=paste(saving_data_file_path,"/",temp_foldername,sep="")
+    temp_file_dirc=paste(work_directory,"/",temp_foldername,sep="")
+    
+    if (!file.exists(temp_file_dirc)){
+      print(temp_file_dirc)
+      stop("ERROR: directory does not exist")
+    }
 
-    setwd(wd)
-
+    setwd(temp_file_dirc)
     my_raster<- list.files(pattern=mod)
-
+    
+    if(ldebug){print(my_raster)}
+    
+    if(length(my_raster)==0){
+      stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_dirc))
+    }
+    
     accumulation_weighted_temp_raster<-raster(my_raster,  crs=crs)
-
+    
     T_array=accumulation_weighted_temp_raster[] #array for weighted temp
 
     potential_snow_melt_raster=accumulation_weighted_temp_raster ##initialize the potential snow melt raster
