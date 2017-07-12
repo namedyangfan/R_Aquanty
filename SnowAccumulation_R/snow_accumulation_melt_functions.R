@@ -92,7 +92,6 @@ average_weighted_temp_raster<-function(x,
       }
     )
     
-    
     crs(r_stack) = crs
     
     r_mean = stackApply(r_stack,fun = mean, indices = rep(1, nlayers(r_stack)))
@@ -112,7 +111,6 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
                                                         pcp_file_path,
                                                         temp_foldername = 'weighted_temp_raster',
                                                         ldebug = FALSE){
-
 
       for (mod in mods){
         if (ldebug){print(mod)}
@@ -153,9 +151,15 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
         ###################### read pcp data
         setwd(pcp_file_path)
         pcp<- list.files(pattern=mod)
-        if (ldebug){print(pcp)}
-        pcp_raster<- raster(pcp, crs = crs)
-        if (ldebug){print("able to open the pcp raster")}
+        if (length(pcp)==0){stop(paste("ERROR: not able to find file in ", pcp_file_path))}
+        
+        results<-tryCatch({ 
+          pcp_raster<- raster(pcp, crs = crs)
+        }, error = function(err){
+          stop(paste("not able to open raster",pcp,"in folder",pcp_file_path))
+        })
+        
+        
 
 
         ###################### snow accumulation
@@ -221,7 +225,7 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
 
 
 
-potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,work_directory, temp_foldername, ldebug=TRUE){
+potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,work_directory, temp_foldername, ldebug=FALSE){
 
   for (mod in mods){
     
@@ -238,10 +242,16 @@ potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,work_directory, tem
     if(ldebug){print(my_raster)}
     
     if(length(my_raster)==0){
+      print(paste("pattern:", mod))
       stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_dirc))
     }
     
-    accumulation_weighted_temp_raster<-raster(my_raster,  crs=crs)
+    results<-tryCatch({ 
+      accumulation_weighted_temp_raster<-raster(my_raster,  crs=crs)
+    }, error = function(err){
+      stop(paste("not able to open raster",my_raster,"in folder",temp_file_dirc))
+    })
+    
     
     T_array=accumulation_weighted_temp_raster[] #array for weighted temp
 
@@ -269,18 +279,10 @@ potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,work_directory, tem
 
 integrate_potential_snowaccumulation_snow_melt<-function(crs,
                                                          mods,
-                                                         saving_data_file_path,
-                                                         pcp_file_path,
-                                                         sublimation_constant){
+                                                         work_directory,
+                                                         sublimation_constant,
+                                                         ldebug=FALSE){
 
-  
-
-  sa=c()
-  sm=c()
-  st=c()
-  st_sum=c()
-  sm_sum=c()
-  print(mods)
   
   #initilize snow carried over from last month (final_snow_accumulation_array_1)
   final_snow_accumulation_array_1=0 
@@ -288,26 +290,52 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
   for (mod in mods){
 
     ##read in the potential snow melt raster
-    setwd(paste(saving_data_file_path,"/potential_snow_melt_raster",sep=""))
+    potential_snow_melt_folder = file.path(work_directory,"potential_snow_melt_raster")
+    if (!dir.exists(potential_snow_melt_folder)){
+      stop(paste("ERROR: directory does not exist. Directory:",potential_snow_melt_folder))
+    }
+    setwd(potential_snow_melt_folder)
 
     my_raster<- list.files(pattern=mod)
     
-    print(my_raster)
+    if(length(my_raster)==0){
+      print(paste("pattern:", mod))
+      stop(paste("ERROR: no file matches the pattern in the folder:", potential_snow_melt_folder))
+    }
 
-
-    potential_snow_Melt_raster<-raster(my_raster,  crs=crs)
+    results<-tryCatch({ 
+      potential_snow_Melt_raster<-raster(my_raster,  crs=crs)
+    }, error = function(err){
+      stop(paste("not able to open raster",my_raster,"in folder: ",potential_snow_melt_folder))
+    })
+    
+    if(ldebug){print(paste("snow melt:", my_raster))}
 
     potential_snow_Melt_array=potential_snow_Melt_raster[]
 
 
     ##read in the snow accumulation raster
-    setwd(paste(saving_data_file_path,"/potential_snow_accumulation",sep=""))
+    potential_snow_accumulation_folder = paste(work_directory,"/potential_snow_accumulation",sep="") 
+    if (!dir.exists(potential_snow_accumulation_folder)){
+      stop(paste("ERROR: directory does not exist. Directory:",potential_snow_accumulation_folder))
+    }
+    setwd(potential_snow_accumulation_folder)
 
     my_raster<- list.files(pattern=mod)
+    if(length(my_raster)==0){
+      print(paste("pattern:", mod))
+      stop(paste("ERROR: no file matches the pattern in the folder:", potential_snow_melt_folder))
+    }
     
-    print(my_raster)
+    if(ldebug){print(paste("potencial snow accumulation:", my_raster))}
+    
+    results<-tryCatch({ 
+      snow_accumulation_raster<-raster(my_raster,  crs=crs)
+    }, error = function(err){
+      stop(paste("not able to open raster",my_raster,"in folder: ",potential_snow_accumulation_folder))
+    })
 
-    snow_accumulation_raster<-raster(my_raster,  crs=crs)
+    
 
     final_snow_melt_raster<-snow_accumulation_raster #initialize snow melt
 
@@ -344,18 +372,6 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
     ##set up the previouse month accumulative snow accumulation array
     final_snow_accumulation_array_1=final_snow_accumulation_array_2
 
-    # st[j]=sum(snow_accumulation_array) ##monthly snow depth without melting
-    # st_sum[j]=sum(st[1:j])##snow depth without melting
-    # sa[j]=sum(final_snow_accumulation_array_2) ##snow depth with melting
-    # sm[j]=sum(final_snow_melt_array)##monthly snow melt
-    # sm_sum[j]=sum(sm[1:j])## snow melt
-
-
-    # filename<- paste("accumulative_snow_accumulation_monthly_2009_2013_",labellist[j],".png")
-    # png(file=filename)
-    # plot(snow_accumulation_raster)
-    # title(main = paste("accumulative snow accumulation at month",labellist[j],sep = " "))
-    # dev.off()
     final_snow_accumulation_array_1_mmonth=final_snow_accumulation_array_1 ##*30*86400 if the pcp is in m/s, can be converted to m/month
 
     snow_accumulation_raster[]=final_snow_accumulation_array_1_mmonth
@@ -371,40 +387,58 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
     setwd("final_snow_melt_raster")
     writeRaster(final_snow_melt_raster, file=paste("snow_melt_raster_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
-    # snow_accumulation_sublimation_raster[]=final_snow_accumulation_array_1_mmonth*(1-sublimation_constant)
-    # setwd("../")
-    # dir.create("final_snow_accumulation_raster_sublimation",showWarnings = FALSE)
-    # setwd("final_snow_accumulation_raster_sublimation")
-    # writeRaster(snow_accumulation_sublimation_raster, file=paste("snow_melt_raster_sublimation_",mod, sep=""), format = "GTiff",overwrite=TRUE)
-
   }
 }
-
-
 
 # combine rain snow -------------------------------------------------------
 
 
 combine_rain_snow <- function(mods,
                               save_filename='final_liquid_',
-                              saving_data_file_path,
+                              work_directory,
                               crs,
                               conversion_factor=1){
   
   for (mod in mods){
-    
-    p = file.path(saving_data_file_path, 'potential_rain_accumulation' )
+    ### read the rain raster
+    p = file.path(work_directory, 'potential_rain_accumulation' )
     setwd(p)
-    print(p)
+    if (!dir.exists(p)){
+      stop(paste("ERROR: directory does not exist. Directory:",p))
+    }
+    
+    
     my_raster<- list.files( path = p, pattern=mod)
-    print(my_raster)
-    rain_raster<-raster(my_raster,  crs=crs)
+    if(length(my_raster)==0){
+      print(paste("pattern:", mod))
+      stop(paste("ERROR: no file matches the pattern in the folder:", p))
+    }
+    
+    results<-tryCatch({ 
+      rain_raster<-raster(my_raster,  crs=crs)
+    }, error = function(err){
+      stop(paste("not able to open raster",my_raster,"in folder: ",p))
+    })
+    
     rain_array<-rain_raster[]
     
-    p = file.path(saving_data_file_path, 'final_snow_melt_raster' )
+    ### read the snow melt raster
+    p = file.path(work_directory, 'final_snow_melt_raster')
+    if (!dir.exists(p)){
+      stop(paste("ERROR: directory does not exist. Directory:",p))
+    }
     setwd(p)
     my_raster<- list.files( path = p, pattern=mod)
-    snowmelt_raster<-raster(my_raster,  crs=crs)
+    if(length(my_raster)==0){
+      print(paste("pattern:", mod))
+      stop(paste("ERROR: no file matches the pattern in the folder:", p))
+    }
+    results<-tryCatch({ 
+      snowmelt_raster<-raster(my_raster,  crs=crs)
+    }, error = function(err){
+      stop(paste("not able to open raster",my_raster,"in folder: ",p))
+    })
+    
     snowmelt_array<-snowmelt_raster[]
     
     combine_rain_snowmelt_raster=rain_raster
@@ -416,8 +450,6 @@ combine_rain_snow <- function(mods,
     writeRaster(combine_rain_snowmelt_raster, 
                 file=paste(save_filename,mod, sep=""), 
                 format = "ascii",overwrite=TRUE)
-    
-    
   }
   
   
@@ -425,16 +457,27 @@ combine_rain_snow <- function(mods,
 
 snow_depth_unit_conversion <- function(mod,
                                        save_filename = 'final_snowdepth_',
-                                       saving_data_file_path,
+                                       work_directory,
                                        crs,
                                        conversion_factor=1){
   
-  p = file.path(saving_data_file_path, 'final_accumulative_snow_accumulation_raster' )
-  setwd(p)
-  print(p)
+  p = file.path(work_directory, 'final_accumulative_snow_accumulation_raster' )
+  if (!dir.exists(p)){
+    stop(paste("ERROR: directory does not exist. Directory:",p))
+  }
+  
   my_raster<- list.files( path = p, pattern=mod)
-  print(my_raster)
-  snowdepth_raster<-raster(my_raster, crs=crs)
+  if(length(my_raster)==0){
+    print(paste("pattern:", mod))
+    stop(paste("ERROR: no file matches the pattern in the folder:", p))
+  }
+  
+  results<-tryCatch({ 
+     snowdepth_raster<-raster(my_raster, crs=crs)
+  }, error = function(err){
+    stop(paste("not able to open raster",my_raster,"in folder: ",p))
+  })
+  
   snowdepth_array<-snowdepth_raster[]
   
   
