@@ -33,10 +33,10 @@ write_TECPLOT_column<-function(x,save_filename,tecplot_zone_name,tecplot_variabl
 }
 
 
-hydat_tecplot<-function(filename_list,to_excel_time=TRUE){
+hydat_tecplot<-function(filename_list,to_excel_time=TRUE, wdir){
 ### if the date is in %Y%M%D format, then "to_excel_time" should be TRUE
   
-  setwd(workdirectory)
+  setwd(wdir)
   
   
   filename=filename_list
@@ -103,7 +103,6 @@ hydat_tecplot<-function(filename_list,to_excel_time=TRUE){
 # save_filename=( "ORB_GWDAT.dat")
 # file.remove(save_filename)         #Delete the preciouse run 
 # lapply(filename,hydat_tecplot)
-# 
 
 
 
