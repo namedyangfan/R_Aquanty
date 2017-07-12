@@ -465,6 +465,7 @@ snow_depth_unit_conversion <- function(mod,
   if (!dir.exists(p)){
     stop(paste("ERROR: directory does not exist. Directory:",p))
   }
+  setwd(p)
   
   my_raster<- list.files( path = p, pattern=mod)
   if(length(my_raster)==0){
