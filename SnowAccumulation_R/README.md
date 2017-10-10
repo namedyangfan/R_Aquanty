@@ -102,8 +102,8 @@ potential snow melt = metlt_constant * ( Temperature - T_melt )
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
 * work_directory: the directory at where the folders *potential_snow_melt_raster* and *potential_snow_accumulation* are located. Two folders will be created in this directory to sort the output:
- * final_accumulative_snow_accumulation_raster: snow depth raster
- * final_snow_melt_raster: snow melt raster
+  * final_accumulative_snow_accumulation_raster: snow depth raster
+  * final_snow_melt_raster: snow melt raster
 
 
 
