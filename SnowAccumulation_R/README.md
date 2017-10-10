@@ -80,10 +80,11 @@ potential_snow_accumulation_rain_accumulation(upper_T_thresh = 0,
 
 
 ## potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
-* metlt_constant: melt constant. eg: 5.787037e-08
-* T_melt: melting begins when temperature reach or above this temperature
+
 ```
 potential snow melt = metlt_constant * ( Temperature - T_melt )
+* metlt_constant: melt constant. eg: 5.787037e-08
+* T_melt: melting begins when temperature reach or above this temperature
 ```
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
