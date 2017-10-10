@@ -56,7 +56,10 @@ average_weighted_temp_raster<-function(x = '_3.asc',
 ## potential_snow_accumulation_rain_accumulation (upper_T_thresh, lower_T_thresh, crs, mods, weighted_temp_raster_file_path, pcp_file_path, temp_foldername = 'weighted_temp_raster')
 * upper_T_thresh: upper temperature threshold. rain is expected at temperature higher than this numer
 * lower_T_thresh: lower temperature threshold. snow is expected at temperature lower than this number
-* If the temperature is in between upper_T_thresh and lower_T_thresh, it is assumed that the preciptation is in a mixed form of snow and rain. The amount of rain can be estimated as: (T - lower_T_thresh) / (upper_T_thresh - lower_T_thresh) * preciptation
+* If the temperature is in between upper_T_thresh and lower_T_thresh, it is assumed that the preciptation is in a mixed form of snow and rain. The amount of rain can be estimated as: 
+```
+(T - lower_T_thresh) / (upper_T_thresh - lower_T_thresh) * preciptation
+```
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
 * weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster()**.
