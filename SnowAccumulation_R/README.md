@@ -8,11 +8,11 @@ The purpose of 'snow_accumulation_melt_funcions' is to estimate the winter proce
 
 * average_weighted_temp_raster: calcualte backward looking moving average of the weighted temprature raster
 
-* potential_snow_accumulation_rain_accumulation: determine the potential for snow and rain accumulation. 
+* potential_snow_accumulation_rain_accumulation: determine the potential for snow and rain accumulation using temperature from either **write_weighted_temp_raster** or **average_weighted_temp_raster**. 
 
 * potential_snow_melt: determine the potential for snow to melt 
 
-* integrate_potential_snowaccumulation_snow_melt: determine the true amount of snow melt and accumulation based on the potential values
+* integrate_potential_snowaccumulation_snow_melt: determine the true amount of snow melt and accumulation based on the potential values. This is done by integration of the results from **potential_snow_accumulation_rain_accumulation** and **potential_snow_melt**
 
 * combine_rain_snow: sum up the rain and snow melt raster for HGS model input
 
@@ -45,12 +45,13 @@ write_weighted_temp_raster(mods = c('_1.asc','_2.asc','_3.asc'),
 * le: the numer of files to look backward. For example, to calcualte a three day backward average, le should be set as *2*.
 ```
 average_weighted_temp_raster<-function(x = '_3.asc',
-                                       mods = '_1.asc','_2.asc','_3.asc'
+                                       mods = c('_1.asc','_2.asc','_3.asc')
                                        crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
                                        weighted_temp_raster_folder_path = c("D:/ARB/temp/weighted"),
                                        weighted_temp_raster_folder_name = "weighted_temp_raster",
                                        le = 2)
 ```
+
 
 
 ## potential_snow_accumulation_rain_accumulation (upper_T_thresh, lower_T_thresh, crs, mods, weighted_temp_raster_file_path, pcp_file_path, temp_foldername = 'weighted_temp_raster')
@@ -69,11 +70,14 @@ average_weighted_temp_raster<-function(x = '_3.asc',
 potential_snow_accumulation_rain_accumulation(upper_T_thresh = 0,
                                               lower_T_thresh = 0,
                                               crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
-                                              mods = '_1.asc','_2.asc','_3.asc',
+                                              mods = c('_1.asc','_2.asc','_3.asc')
                                               weighted_temp_raster_file_path = c("D:/ARB/temp/weighted"),
                                               pcp_file_path = c("D:/ARB/pcp"),
                                               temp_foldername = 'weighted_temp_raster')
 ```
+
+
+
 
 ## potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
 * metlt_constant: melt constant. eg: 5.787037e-08
@@ -83,12 +87,23 @@ potential snow melt = metlt_constant * ( Temperature - T_melt )
 ```
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
-* weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster()**.
-* pcp_file_path: file path of the preciptation raster folder.
-* temp_foldername: the folder name of where the temperature raster files are located. weighted_temp_raster_folder_name is set to *weighted_temp_raster* by default.
+* work_directory: the directory at where the folder *temp_foldername* is located. A new folder *potential_snow_melt_raster* is create to store the potential snow melt raster
+* temp_foldername: folder name of the temperature rasters
+```
+ potential_snow_melt(metlt_constant = 5.787037e-08,
+                     T_melt = 0.0,
+                     crs =  c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
+                     mods = c('_1.asc','_2.asc','_3.asc'),
+                     work_directory = "D:/ARB",
+                     temp_foldername = "weighted_temp_raster")
+```
 
-
-
+## integrate_potential_snowaccumulation_snow_melt (crs, mods, work_directory, sublimation_constant)
+* crs: projection of the raster. Assumes all the raster files are in the same projection.
+* mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
+* work_directory: the directory at where the folders *potential_snow_melt_raster* and *potential_snow_accumulation* are located. Two folders will be created in this directory to sort the output:
+ * final_accumulative_snow_accumulation_raster: snow depth raster
+ * final_snow_melt_raster: snow melt raster
 
 
 
