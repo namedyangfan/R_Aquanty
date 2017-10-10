@@ -16,16 +16,16 @@ The purpose of 'snow_accumulation_melt_funcions' is to estimate the winter proce
 
 * combine_rain_snow: sum up the rain and snow melt raster for HGS model input
 
-*snow_depth_unit_conversion: convert the unit of the snow depth raster by multiplyng a constant
+* snow_depth_unit_conversion: convert the unit of the snow depth raster by multiplyng a constant
 
 # Method
 
 ## write_weighted_temp_raster(crs,mods,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef)
-* crs: projection of the raster assumes all the raster files are in the same projection
+* crs: projection of the raster. Assumes all the raster files are in the same projection
 * mods: a list of matching pattern, this pattern is used to look for temperature files. Assuming tmin and tmax have the same matching pattern.
 * tmax_file_path: folder directory of the maximum temperature raster 
 * tmin_file_path: folder directory of the minimum temperature raster 
-* weighted_temp_raster_file_path: the directory where the folder **weighted_temp_raster** can be created. **weighted_temp_raster** is create to contain all the weighted temperature output files.
+* weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* can be created. *weighted_temp_raster* is create to contain all the weighted temperature output files.
 * weighted_coef: the weighted temperature is calcualted by ** tmin + weighted_coef(tmax-tmin) **
 ```
 write_weighted_temp_raster(mods = c('_1.asc','_2.asc','_3.asc'),
@@ -40,27 +40,49 @@ write_weighted_temp_raster(mods = c('_1.asc','_2.asc','_3.asc'),
 ## average_weighted_temp_raster(x, mods, crs, weighted_temp_raster_folder_path, weighted_temp_raster_folder_name = "weighted_temp_raster", le = 2, ldebug = FALSE)
 * x: a pattern that is used to match the temperature raster files. *x* is the starting point for the backward looking average method. There has to be at least *le* number of elements in *mods* before *x*.
 * mods: a list of patterns that is used to match all the temperature raster files. The order of mods determines which files are used to compute the backward average.
-* weighted_temp_raster_folder_path: the directory where the folder **weighted_temp_raster** is created. **weighted_temp_raster** is a folder that contains the output from **write_weighted_temp_raster()**
+* weighted_temp_raster_folder_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster()**.
 * weighted_temp_raster_folder_name: the folder name of where the temperature raster files are located. weighted_temp_raster_folder_name is set to *weighted_temp_raster* by default.
 * le: the numer of files to look backward. For example, to calcualte a three day backward average, le should be set as *2*.
 ```
 average_weighted_temp_raster<-function(x = '_3.asc',
-                                       mods = c('_1.asc','_2.asc','_3.asc')
+                                       mods = '_1.asc','_2.asc','_3.asc'
                                        crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
                                        weighted_temp_raster_folder_path = c("D:/ARB/temp/weighted"),
                                        weighted_temp_raster_folder_name = "weighted_temp_raster",
                                        le = 2)
 ```
-## potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh, lower_T_thresh, crs, mods, weighted_temp_raster_file_path, pcp_file_path, temp_foldername = 'weighted_temp_raster')
+
+
+## potential_snow_accumulation_rain_accumulation (upper_T_thresh, lower_T_thresh, crs, mods, weighted_temp_raster_file_path, pcp_file_path, temp_foldername = 'weighted_temp_raster')
 * upper_T_thresh: upper temperature threshold. rain is expected at temperature higher than this numer
 * lower_T_thresh: lower temperature threshold. snow is expected at temperature lower than this number
 * If the temperature is in between upper_T_thresh and lower_T_thresh, it is assumed that the preciptation is in a mixed form of snow and rain. The amount of rain can be estimated as: (T - lower_T_thresh) / (upper_T_thresh - lower_T_thresh) * preciptation
+* crs: projection of the raster. Assumes all the raster files are in the same projection.
+* mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
+* weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster()**.
+* pcp_file_path: file path of the preciptation raster folder.
+* temp_foldername: the folder name of where the temperature raster files are located. weighted_temp_raster_folder_name is set to *weighted_temp_raster* by default.
+```
+potential_snow_accumulation_rain_accumulation(upper_T_thresh = 0,
+                                              lower_T_thresh = 0,
+                                              crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
+                                              mods = '_1.asc','_2.asc','_3.asc',
+                                              weighted_temp_raster_file_path = c("D:/ARB/temp/weighted"),
+                                              pcp_file_path = c("D:/ARB/pcp"),
+                                              temp_foldername = 'weighted_temp_raster')
+```
 
-
-
-
-
-
+## potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
+* metlt_constant: melt constant. eg: 5.787037e-08
+* T_melt: melting begins when temperature reach or above this temperature
+```
+potential snow melt = metlt_constant * ( Temperature - T_melt )
+```
+* crs: projection of the raster. Assumes all the raster files are in the same projection.
+* mods: a list of matching patterns that is used to match all the temperature and preciptation raster files. The temperature and preciptation files have to share same matching pattern.
+* weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster()**.
+* pcp_file_path: file path of the preciptation raster folder.
+* temp_foldername: the folder name of where the temperature raster files are located. weighted_temp_raster_folder_name is set to *weighted_temp_raster* by default.
 
 
 
