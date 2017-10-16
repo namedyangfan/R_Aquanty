@@ -1,5 +1,5 @@
 
-
+library(akima)
 ### the below create weighted temperature raster that can be used to determine snow accumulation
 ### the input raster required are "T_max", "T_min"
 
@@ -41,7 +41,7 @@ write_weighted_temp_raster<-function(crs,mods,tmax_file_path,tmin_file_path,weig
       dir.create("weighted_temp_raster",showWarnings = FALSE)
       setwd("weighted_temp_raster")
 
-      writeRaster(weighted_temp_raster, file=paste("final_05weightedtemperature_",mod, sep=""), format = "GTiff",overwrite=TRUE)
+      writeRaster(weighted_temp_raster, file=paste("final_weightedtemperature_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
      }
 
@@ -491,5 +491,24 @@ snow_depth_unit_conversion <- function(mod,
   writeRaster(snowdepth_raster, 
               file=paste(save_filename,mod, sep=""), 
               format = "ascii",overwrite=TRUE)
-  
+}
+
+interp_melt_const <- function (ref_file_directory,
+                                ref_file_name,
+                                temp,
+                                jday
+                                ){
+
+  ref_file_path = file.path(ref_file_directory, ref_file_name)
+  if(!file.exists(ref_file_path)){
+    print(paste0("ERROR: file does not exist:", ref_file_path))
+    }
+
+  melt_table <- read.table(ref_file_path, sep = "" , header = T ,
+                     na.strings ="", stringsAsFactors= F, skip = 7)
+
+  v = interp(x = melt_table$X_temp, y = melt_table$Y_Jday, z = melt_table$Grid_pot, 
+            xo=temp, yo=jday)
+  return(v)
+
 }

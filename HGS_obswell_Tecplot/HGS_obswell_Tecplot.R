@@ -30,7 +30,7 @@ make_chooselayer_func<-function(L,col_num,col_variable,ref_line_num=3,solutionti
   num_layer=estimate_layer_number(L)
   header_space=3 #number of lines in header 
   
-  #this function below take the variables and returns 
+  #this function below take a list of sheet number and return the variable value for those sheets 
   extract_layer_fromvariable<-function(observation_sheet){
     
     col_type=rep("NULL",length(col_variable))
@@ -38,7 +38,6 @@ make_chooselayer_func<-function(L,col_num,col_variable,ref_line_num=3,solutionti
     col_type[col_num]="character" #only assign the selected col num as character 
     
     wellscreen_layer=seq(min(observation_sheet),max(observation_sheet)) #all the layer within the range
-    
     
     flip_layer_num=lapply(wellscreen_layer, function (x) ref_line_num+x) #the layer is counted from the bottom in HGS
     
@@ -60,21 +59,31 @@ make_chooselayer_func<-function(L,col_num,col_variable,ref_line_num=3,solutionti
 }
 
 
-obs_well_tecplot<-function (file_name,obs_Var,wellscreen_layer=c(1)){
+obs_well_tecplot<-function (file_name_pattern,obs_Var,wellscreen_layer=c(1)){
   
-  save_filename=paste0(file_name,".dat") #take the ID as the same file name
+  save_filename=paste0(file_name_pattern,".dat") #take the ID as the same file name
   
   col_variable=c("H","S","Q","Ho","Qo","X","Y","Z","Nodes") #list all the variables in the dat file
   
   col_num=match(obs_Var,col_variable) #match the variables with the selected one
   
-  file_name=list.files(pattern=file_name, full.names=FALSE)
+  if (length(col_num)==0){
+    print("not able to find match varibale:")
+    print(col_variable)
+  }
+  
+  file_name=list.files(pattern=file_name_pattern, full.names=FALSE)
   print(file_name)
   
-  L=readLines(file_name) #read in file as line 
+  results = tryCatch({
+    L=readLines(file_name) #read in file as line 
+  }, error = function(e){
+    print("not able to open file:")
+    print(file_name_pattern)
+  }
+  )
   
   test_funtion=make_chooselayer_func(L,col_num,col_variable) #this return a function that takes the sheet number 
-  
   
   tecplot_results=test_funtion(wellscreen_layer) #extract the data 
   
@@ -100,34 +109,35 @@ obs_well_tecplot<-function (file_name,obs_Var,wellscreen_layer=c(1)){
 } 
 
 
-read_wellsheetsummary<-function(f,obs_Var=c("H")){
+read_wellsheetsummary<-function(file_directory, summary_f,obs_Var=c("H"), parallel= FALSE){
+  # summary_f: format of ID,Start_Sheet,End_Sheet
+  # obs_Var: one or more of the following "H","S","Q","Ho","Qo","X","Y","Z","Nodes"
   
-  dt=read.csv(file = f,header =TRUE,sep =',',colClasses = c("character","numeric","numeric"))
+  setwd(file_directory)
   
-  # apply(dt,1,function(x) obs_well_tecplot(file_name = x[1],obs_Var,wellscreen_layer=as.numeric( x[c(2,3)])))
-  
-  
-  no_cores<-detectCores()
-  
-  cl<-makeCluster(no_cores)
-  
-  clusterExport(cl=cl, varlist=c("dt","obs_Var","obs_well_tecplot","make_chooselayer_func","estimate_layer_number"),envir = environment())
-  
-  a<-clusterEvalQ(cl, library('tools'))
-  
-  system.time(parApply(cl,dt,1,function(x) obs_well_tecplot(file_name = x[1],obs_Var,wellscreen_layer=as.numeric( x[c(2,3)]))))
-  
-  stopCluster(cl)
-  
+  results = tryCatch({
+    dt=read.csv(file = summary_f,header =TRUE,sep =',',colClasses = c("character","numeric","numeric"))
+  }, error = function(e){
+      print("not able to open summary file")
+    }
+  )
+
+  if (parallel){
+    no_cores<-detectCores()-2
+    
+    cl<-makeCluster(no_cores)
+    
+    clusterExport(cl=cl, varlist=c("dt","obs_Var","obs_well_tecplot","make_chooselayer_func","estimate_layer_number"),envir = environment())
+    
+    a<-clusterEvalQ(cl, library('tools'))
+    
+    system.time(parApply(cl,dt,1,function(x) obs_well_tecplot(file_name_pattern = x[1],obs_Var,wellscreen_layer=as.numeric( x[c(2,3)]))))
+    
+    stopCluster(cl)
+  }
+  else {
+    apply(dt,1,function(x) obs_well_tecplot(file_name_pattern = x[1],obs_Var,wellscreen_layer=as.numeric( x[c(2,3)])))
+  }
 }
-
-
-setwd("C:/Users/fyang/Desktop/TEST_HGS_OBSWELL")
-
-summary_file_name=c("GW Well Sheets Summary.csv")
-
-x=read_wellsheetsummary(summary_file_name,obs_Var=c("H","S","Z"))
-
-
 
 
