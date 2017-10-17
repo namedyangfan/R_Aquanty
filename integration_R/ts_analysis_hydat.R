@@ -89,16 +89,20 @@ ts_trapezint<-function(x,y,missing_data=FALSE){
 monthly_or_annual_mean_value<-function(time_series,y,a,b,mean_step="month"){
 
   i=which(as.Date(time_series)==as.Date(a))
+  if (i==0){
+    print("a is not in the time_series") 
+  }
   j=which(as.Date(time_series)==as.Date(b))
-
-  print( "a and b exists in x and y" )
+  if (length(j)==0){
+    print("b is not in the time_series") 
+    j=length(time_series)
+  }
 
   #format the date as YYYYMM
   Date_YM=format(as.Date(time_series[i:j]),"%Y-%m")
   DT=data.table(Date_YM,y=y[i:j])
   write.table(levels(factor(Date_YM)),file="ft",quote = FALSE,row.names=FALSE,col.names=TRUE,append = FALSE,sep = ",")
   DT=DT[,.(mean_flow=mean(y)),by=(Date=Date_YM)]
-
 
   if(mean_step=="year"){
 
@@ -108,7 +112,8 @@ monthly_or_annual_mean_value<-function(time_series,y,a,b,mean_step="month"){
 
     DT[,averge_annul_mean_flow:=mean(annul_mean_flow)]
   }
-  DT
+  
+  DT = DT[complete.cases(DT), ]
 }
 
 #
