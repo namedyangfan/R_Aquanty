@@ -37,7 +37,7 @@ df_org3 = melt_table[melt_table$X_temp == 0.15712682, ]
 # lines(df_org3$Y_Jday,df_org3$Grid_pot,type="p",col="pink", pch=19, cex = 0.5)
 # legend("topright", inset=.05, title="temperature",
 #    c("15.55555556 (table)","15.55555556 (interp)","12.25589226(interp)", "12.25589226(table)", "0.15712682 (interp)", "0.15712682 (table)"
-#     ), col=c('red','green', 'blue', 'black', 'brown', 'pink'),  horiz=FALSE, pch= 'o')
+#     ), col=c('red','green', 'blue', 'black', 'b rown', 'pink'),  horiz=FALSE, pch= 'o')
 # dev.off()
 
 ## interpolate a snow melt raster
