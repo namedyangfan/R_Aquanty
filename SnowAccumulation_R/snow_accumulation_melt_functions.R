@@ -1,5 +1,5 @@
 
-
+library(akima)
 ### the below create weighted temperature raster that can be used to determine snow accumulation
 ### the input raster required are "T_max", "T_min"
 
@@ -41,7 +41,7 @@ write_weighted_temp_raster<-function(crs,mods,tmax_file_path,tmin_file_path,weig
       dir.create("weighted_temp_raster",showWarnings = FALSE)
       setwd("weighted_temp_raster")
 
-      writeRaster(weighted_temp_raster, file=paste("final_05weightedtemperature_",mod, sep=""), format = "GTiff",overwrite=TRUE)
+      writeRaster(weighted_temp_raster, file=paste("final_weightedtemperature_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
      }
 
@@ -491,5 +491,50 @@ snow_depth_unit_conversion <- function(mod,
   writeRaster(snowdepth_raster, 
               file=paste(save_filename,mod, sep=""), 
               format = "ascii",overwrite=TRUE)
-  
 }
+
+interp_melt_const <- function (ref_file_directory,
+                                ref_file_name,
+                                temp,
+                                jday
+                                ){
+
+  ref_file_path = file.path(ref_file_directory, ref_file_name)
+  if(!file.exists(ref_file_path)){
+    print(paste0("ERROR: file does not exist:", ref_file_path))
+    }
+
+  melt_table <- read.table(ref_file_path, sep = "" , header = T ,
+                     na.strings ="", stringsAsFactors= F, skip = 7)
+
+  x = unique(melt_table$X_temp)
+  y= unique(melt_table$Y_Jday)
+  d <- matrix(melt_table$Grid_pot, nrow = length(x), byrow = TRUE)
+
+  v =bicubic (x=x, y=y, z= d, y0=jday, x0=rep(temp,length(jday)))
+
+  return(v)
+}
+
+interp_melt_const_raster <- function ( mod,
+                                       work_directory,
+                                       temp_folder_name,
+                                       crs){
+
+  temp_file_path = file.path(work_directory, temp_folder_name)
+  snow_melt_table = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt'
+
+  if(!file.exists(temp_file_path)){
+    print(paste0("ERROR: file does not exist:", ref_file_path))
+    }
+
+  if(!file.exists(temp_file_path)){
+    print(paste0("ERROR: file does not exist:", ref_file_path))
+    }
+
+  for (mod in mods){
+    my_raster<- list.files( path = temp_file_path, pattern=mod)
+  }
+
+}
+
