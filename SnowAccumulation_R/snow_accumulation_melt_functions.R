@@ -499,7 +499,17 @@ interp_melt_const <- function (ref_file_directory,
                                 jday
                                 ){
 
+  if (length(jday) != length(temp)){
+    if (length(jday) == 1){
+      jday = rep(jday, length(temp))
+    }
+    else if (length(temp) == 1){
+      temp = rep(temp, length(jday))
+    }
+  }
+
   ref_file_path = file.path(ref_file_directory, ref_file_name)
+
   if(!file.exists(ref_file_path)){
     print(paste0("ERROR: file does not exist:", ref_file_path))
     }
@@ -511,29 +521,78 @@ interp_melt_const <- function (ref_file_directory,
   y= unique(melt_table$Y_Jday)
   d <- matrix(melt_table$Grid_pot, nrow = length(x), byrow = TRUE)
 
-  v =bicubic (x=x, y=y, z= d, y0=jday, x0=rep(temp,length(jday)))
+  v =bicubic (x=x, y=y, z= d, y0=jday, x0=temp)
 
   return(v)
 }
 
-interp_melt_const_raster <- function ( mod,
+interp_melt_const_raster <- function ( mods,
                                        work_directory,
                                        temp_folder_name,
-                                       crs){
+                                       crs,
+                                       output){
 
   temp_file_path = file.path(work_directory, temp_folder_name)
   snow_melt_table = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt'
+  save_path = file.path(work_directory, 'snow_melt_constant')
 
   if(!file.exists(temp_file_path)){
     print(paste0("ERROR: file does not exist:", ref_file_path))
+    return
     }
 
   if(!file.exists(temp_file_path)){
     print(paste0("ERROR: file does not exist:", ref_file_path))
+    return
+    }
+
+  if(!file.exists(save_path)){
+    dir.create(save_path,showWarnings = FALSE)
     }
 
   for (mod in mods){
-    my_raster<- list.files( path = temp_file_path, pattern=mod)
+
+    temp_raster <- list.files( path = temp_file_path, pattern=mod, full.names = TRUE)
+
+    if(length(temp_raster)==0){
+      print(paste("pattern:", mod))
+      stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_path))
+                            }
+
+    temp_raster <- raster(temp_raster,  crs=crs)
+    temp_array = temp_raster[]
+
+    jday = as.numeric(strsplit(mod, '_')[[1]][-1])
+
+    if(is.na(jday)){
+      stop(paste("ERROR: not able to convert mod to Jday. mod: ", mod))
+    }
+
+
+    #initialize a melt array and raster
+    melt_raster = temp_raster
+    melt_array = temp_array
+
+    temp_melt_index = which(temp_array>0 & temp_array<15.55)
+    temp_no_melt_index = which(temp_array<=0)
+    temp_over_melt_index = which(temp_array>=15.55)
+
+    #assign melt constant to the cell with temperature outside the table range
+    melt_array[temp_no_melt_index] = 0
+    melt_array[temp_over_melt_index] = 80.79308 # This is the maximum Grid_pot in the table
+
+    #interp melt constant from table
+    melt_const = interp_melt_const( ref_file_directory = work_directory, 
+                      ref_file_name = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt', 
+                      temp = temp_array[temp_melt_index], 
+                      jday = jday)
+
+    melt_array[temp_melt_index] = melt_const$z
+    melt_raster[] = melt_array
+
+    writeRaster(melt_raster, 
+              file= file.path(save_path, paste0('interp_melt_constant_', mod)), 
+              format = "ascii",overwrite=TRUE)
   }
 
 }
