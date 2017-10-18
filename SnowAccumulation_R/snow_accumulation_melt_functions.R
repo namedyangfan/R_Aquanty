@@ -608,7 +608,8 @@ interp_melt_const_raster <- function ( mods,
                                        temp_folder_name,
                                        crs,
                                        output,
-                                       format = "ascii"){
+                                       format = "ascii",
+                                       mods_format = "%Y%m%d"){
 
   temp_file_path = file.path(work_directory, temp_folder_name)
   snow_melt_table = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt'
@@ -637,16 +638,21 @@ interp_melt_const_raster <- function ( mods,
       print(paste("pattern:", mod))
       stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_path))
                             }
-
+     # read in raster
     temp_raster <- raster(temp_raster,  crs=crs)
     temp_array = temp_raster[]
 
-    jday = as.numeric(strsplit(mod, '_')[[1]][-1])
+    # split jday from mod. the last element after '_' will be used.
+    #jday = strsplit(mod, '_')[[1]][-1]
+
+    # convert mod to julian date
+    jday = as.Date(mod,format = mods_format)
+
+    jday = as.numeric(format(jday,"%j"))
 
     if(is.na(jday)){
       stop(paste("ERROR: not able to convert mod to Jday. mod: ", mod))
     }
-
 
     #initialize a melt array and raster
     melt_raster = temp_raster
