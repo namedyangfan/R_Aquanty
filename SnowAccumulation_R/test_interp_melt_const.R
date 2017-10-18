@@ -49,8 +49,23 @@ cwd= getwd()
 #                            weighted_temp_raster_file_path = file.path(cwd, 'test'),
 #                            weighted_coef =0.5)
 
-interp_melt_const_raster(mods = c('_5','_6','_7'), 
+# potential_snow_melt(metlt_constant = 5.787037e-08,
+#                     T_melt = 0.0,
+#                     crs =  c("+proj=longlat +datum=WGS84 +no_defs"),
+#                     mods = c('_1.','_2.','_3.'),
+#                     work_directory = file.path(cwd, 'test'),
+#                     temp_foldername = "weighted_temp_raster")
+
+
+interp_melt_const_raster(mods = c('_120','_150','_180'), 
                          work_directory = getwd(), 
-                         temp_folder_name="test/melt_const_temp", 
+                         temp_folder_name="test/weighted_temp_raster", 
                          crs='+proj=longlat +datum=WGS84 +no_defs',
-                         format = 'GTiff')
+                         format = 'ascii')
+
+potential_snow_melt(T_melt_folder_name = "snow_melt_constant",
+                    format = "ascii",
+                    crs =  c("+proj=longlat +datum=WGS84 +no_defs"),
+                    mods = c('_120','_150','_180'),
+                    work_directory = cwd,
+                    temp_foldername = "test/weighted_temp_raster")
