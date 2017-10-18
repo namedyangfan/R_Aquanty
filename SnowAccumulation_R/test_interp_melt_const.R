@@ -49,4 +49,8 @@ cwd= getwd()
 #                            weighted_temp_raster_file_path = file.path(cwd, 'test'),
 #                            weighted_coef =0.5)
 
-interp_melt_const_raster(mods = c('_5','_6','_7'), work_directory = getwd(), temp_folder_name="test/melt_const_temp", crs='+proj=longlat +datum=WGS84 +no_defs')
+interp_melt_const_raster(mods = c('_5','_6','_7'), 
+                         work_directory = getwd(), 
+                         temp_folder_name="test/melt_const_temp", 
+                         crs='+proj=longlat +datum=WGS84 +no_defs',
+                         format = 'GTiff')

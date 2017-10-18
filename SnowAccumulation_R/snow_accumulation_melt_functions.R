@@ -530,7 +530,8 @@ interp_melt_const_raster <- function ( mods,
                                        work_directory,
                                        temp_folder_name,
                                        crs,
-                                       output){
+                                       output,
+                                       format = "ascii"){
 
   temp_file_path = file.path(work_directory, temp_folder_name)
   snow_melt_table = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt'
@@ -592,7 +593,7 @@ interp_melt_const_raster <- function ( mods,
 
     writeRaster(melt_raster, 
               file= file.path(save_path, paste0('interp_melt_constant_', mod)), 
-              format = "ascii",overwrite=TRUE)
+              format = format,overwrite=TRUE)
   }
 
 }
