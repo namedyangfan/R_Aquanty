@@ -21,7 +21,7 @@ df_org3 = melt_table[melt_table$X_temp == 0.15712682, ]
 
 ## interp
 # x= 12.25589226
-# y = seq(1, 365, 15)
+# y = seq(1, 365)
 # x2 = 15.55555556
 # x3 = 0.15712682
 # df_interp = interp_melt_const(ref_file_directory = file_direc, ref_file_name = file_name, temp=x, jday=y)
@@ -41,4 +41,12 @@ df_org3 = melt_table[melt_table$X_temp == 0.15712682, ]
 # dev.off()
 
 ## interpolate a snow melt raster
-# interp_melt_const_raster(mods = '_4', work_directory = getwd(), temp_folder_name="test/melt_const_raster", crs='+proj=longlat +datum=WGS84 +no_defs')
+cwd= getwd()
+# write_weighted_temp_raster(mods = c('_1.asc','_2.asc','_3.asc'),
+#                            crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+#                            tmax_file_path = file.path(cwd, 'test', 'tmax'),
+#                            tmin_file_path = file.path(cwd, 'test', 'tmin'),
+#                            weighted_temp_raster_file_path = file.path(cwd, 'test'),
+#                            weighted_coef =0.5)
+
+interp_melt_const_raster(mods = c('_5','_6','_7'), work_directory = getwd(), temp_folder_name="test/melt_const_temp", crs='+proj=longlat +datum=WGS84 +no_defs')
