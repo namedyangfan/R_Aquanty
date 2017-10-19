@@ -225,55 +225,138 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
 
 
 
-potential_snow_melt<-function(metlt_constant,T_melt,crs,mods,work_directory, temp_foldername, ldebug=FALSE){
+potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,melt_const_folder=NULL,format="GTiff",crs,mods,work_directory, temp_foldername, ldebug=FALSE){
 
-  for (mod in mods){
-    
-    temp_file_dirc=paste(work_directory,"/",temp_foldername,sep="")
-    
-    if (!file.exists(temp_file_dirc)){
-      print(temp_file_dirc)
-      stop("ERROR: directory does not exist")
-    }
-
-    setwd(temp_file_dirc)
-    my_raster<- list.files(pattern=mod)
-    
-    if(ldebug){print(my_raster)}
-    
-    if(length(my_raster)==0){
-      print(paste("pattern:", mod))
-      stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_dirc))
-    }
-    
-    results<-tryCatch({ 
-      accumulation_weighted_temp_raster<-raster(my_raster,  crs=crs)
-    }, error = function(err){
-      stop(paste("not able to open raster",my_raster,"in folder",temp_file_dirc))
-    })
-    
-    
-    T_array=accumulation_weighted_temp_raster[] #array for weighted temp
-
-    potential_snow_melt_raster=accumulation_weighted_temp_raster ##initialize the potential snow melt raster
-
-    potential_snow_melt_raster[]=0
-
-    melt_index=which(T_array>T_melt)
-
-    potential_snow_melt_raster[melt_index]=metlt_constant*(T_array[melt_index]-T_melt)
-
-    setwd("../")
-
-    dir.create("potential_snow_melt_raster",showWarnings = FALSE)
-
-    setwd("potential_snow_melt_raster")
-
-    writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "GTiff",overwrite=TRUE)
-
+  if (is.null(metlt_constant) & is.null(T_melt) & is.null(melt_const_folder)){
+    stop("ERROR: specify melt_const_folder or melt_constant and T_melt")
   }
 
+  ## using constant melt coef to calcualte potential snow melt
+  else if (!is.null(metlt_constant) & !is.null(T_melt)){
 
+    if(!is.null(melt_const_folder)){
+      warning("Warning: A value for melt_const_folder is provided but ignored")
+    }
+    
+    for (mod in mods){
+      
+      temp_file_dirc=paste(work_directory,"/",temp_foldername,sep="")
+      
+      if (!file.exists(temp_file_dirc)){
+        print(temp_file_dirc)
+        stop("ERROR: directory does not exist")
+      }
+
+      setwd(temp_file_dirc)
+      my_raster<- list.files(pattern=mod)
+      
+      if(ldebug){print(my_raster)}
+      
+      if(length(my_raster)==0){
+        print(paste("pattern:", mod))
+        stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_dirc))
+      }
+      
+      results<-tryCatch({ 
+        accumulation_weighted_temp_raster<-raster(my_raster,  crs=crs)
+      }, error = function(err){
+        stop(paste("not able to open raster",my_raster,"in folder",temp_file_dirc))
+      })
+      
+      
+      T_array=accumulation_weighted_temp_raster[] #array for weighted temp
+
+      potential_snow_melt_raster=accumulation_weighted_temp_raster ##initialize the potential snow melt raster
+
+      potential_snow_melt_raster[]=0
+
+      melt_index=which(T_array>T_melt)
+
+      potential_snow_melt_raster[melt_index]=metlt_constant*(T_array[melt_index]-T_melt)
+
+      setwd("../")
+
+      dir.create("potential_snow_melt_raster",showWarnings = FALSE)
+
+      setwd("potential_snow_melt_raster")
+
+      writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "GTiff",overwrite=TRUE)
+
+    }
+                                                        }
+
+  ## using interpolated melt coef raster to calcualte potential snow melt
+  else if (!is.null(melt_const_folder)){
+
+    T_melt_raster_path = file.path(work_directory, melt_const_folder)
+    Temp_raster_path = file.path(work_directory, temp_foldername)
+    save_path = file.path(work_directory, 'potential_snow_melt_raster')
+
+    ##check if melt_const_folder exist
+    if (!dir.exists(T_melt_raster_path)){ 
+      stop(paste("ERROR: directory does not exist. Directory:",T_melt_raster_path))
+    }
+
+    ##check if melt_const_folder exist
+    if(!file.exists(Temp_raster_path)){
+      stop(paste("ERROR: file does not exist:", Temp_raster_path))
+    }
+
+    ##create output folder
+    if(!file.exists(save_path)){
+       dir.create(save_path, showWarnings = FALSE)
+    }
+
+    for (mod in mods){
+
+      ## open snow melt coef raster
+      snow_melt_coef_raster <- list.files(path = T_melt_raster_path, pattern=mod, full.names = TRUE)  
+
+      if(length(snow_melt_coef_raster)==0){
+        print(paste("pattern:", mod))
+        stop(paste("ERROR: no file matches the pattern in the folder:", T_melt_raster_path))
+      }
+
+      results<-tryCatch({ 
+          snow_melt_coef_raster<- raster(snow_melt_coef_raster, crs = crs)
+        }, error = function(err){
+          stop(paste("not able to open raster",snow_melt_coef_raster))
+        })
+
+      snow_melt_array = snow_melt_coef_raster[]
+
+      ## open temperature raster
+      temp_raster<- list.files(path = Temp_raster_path, pattern=mod, full.names = TRUE)  
+
+      if(length(temp_raster)==0){
+        print(paste("pattern:", mod))
+        stop(paste("ERROR: no file matches the pattern in the folder:", Temp_raster_path))
+      }
+
+      results<-tryCatch({ 
+          temp_raster<- raster(temp_raster, crs = crs)
+        }, error = function(err){
+          stop(paste("not able to open raster",temp_raster))
+        })
+      
+      
+      T_array = temp_raster[] #array for weighted temp (depending on the input, this can also be average temp)
+
+      potential_snow_melt_raster = temp_raster ##initialize the potential snow melt raster
+
+      potential_snow_melt_raster[] = 0  ## set value to zero
+
+      potential_snow_melt_raster[] = T_array * snow_melt_array
+
+      writeRaster(potential_snow_melt_raster, file=file.path(save_path, paste0("Potential_snow_melt_",mod)), format = format,overwrite=TRUE)
+    }
+    
+                                    }
+  
+  ## option not right, warning message
+  else {
+    stop("ERROR: specify 1: melt_const_folder or 2: melt_constant and T_melt")
+        }
 }
 
 
@@ -498,6 +581,8 @@ interp_melt_const <- function (ref_file_directory,
                                 temp,
                                 jday
                                 ){
+  ### a function that does 3D interpolation based on the table ref_file_name
+  ## The table must has three columns X_temp, Y_Jday, and Grid_pot
 
   if (length(jday) != length(temp)){
     if (length(jday) == 1){
@@ -530,7 +615,17 @@ interp_melt_const_raster <- function ( mods,
                                        work_directory,
                                        temp_folder_name,
                                        crs,
-                                       output){
+                                       table_directory,
+                                       format = "ascii",
+                                       mods_format = "%Y%m%d"){
+  ### This function converts the temperature raster from the temperature_folder_name
+  ### to snow melt raster
+  ### based on the table values 
+  ## Assumptions:
+  ##  1. mods can be used as a unique identifier to look up each raster files
+  ##  2. mods must be is a date format as specified in mods_format. eg: 20171019
+  ##  3. file 'SnowMeltGrid_NoBlankLines_NoNegatives.txt' must be in the same directory as this script
+  ##  4. a folder 'snow_melt_constant' is created in the work_directory to save output
 
   temp_file_path = file.path(work_directory, temp_folder_name)
   snow_melt_table = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt'
@@ -551,38 +646,44 @@ interp_melt_const_raster <- function ( mods,
     }
 
   for (mod in mods){
-
+    ## open temperature raster
+     # search for file match pattern
     temp_raster <- list.files( path = temp_file_path, pattern=mod, full.names = TRUE)
 
     if(length(temp_raster)==0){
       print(paste("pattern:", mod))
       stop(paste("ERROR: no file matches the pattern in the folder:", temp_file_path))
                             }
-
+     # read in raster
     temp_raster <- raster(temp_raster,  crs=crs)
     temp_array = temp_raster[]
 
-    jday = as.numeric(strsplit(mod, '_')[[1]][-1])
+    # split jday from mod. the last element after '_' will be used.
+    #jday = strsplit(mod, '_')[[1]][-1]
+
+    # convert mod to julian date
+    jday = as.Date(mod,format = mods_format)
+
+    jday = as.numeric(format(jday,"%j"))
 
     if(is.na(jday)){
       stop(paste("ERROR: not able to convert mod to Jday. mod: ", mod))
     }
 
-
     #initialize a melt array and raster
     melt_raster = temp_raster
     melt_array = temp_array
 
-    temp_melt_index = which(temp_array>0 & temp_array<15.55)
+    temp_melt_index = which(temp_array>0 & temp_array<15.55) #15.55 is the upper boundary of the temperature in the table
     temp_no_melt_index = which(temp_array<=0)
     temp_over_melt_index = which(temp_array>=15.55)
 
     #assign melt constant to the cell with temperature outside the table range
-    melt_array[temp_no_melt_index] = 0
+    melt_array[temp_no_melt_index] = 0 # set 0 melt const to below 0 temperature cells
     melt_array[temp_over_melt_index] = 80.79308 # This is the maximum Grid_pot in the table
 
     #interp melt constant from table
-    melt_const = interp_melt_const( ref_file_directory = work_directory, 
+    melt_const = interp_melt_const( ref_file_directory = table_directory, 
                       ref_file_name = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt', 
                       temp = temp_array[temp_melt_index], 
                       jday = jday)
@@ -592,7 +693,7 @@ interp_melt_const_raster <- function ( mods,
 
     writeRaster(melt_raster, 
               file= file.path(save_path, paste0('interp_melt_constant_', mod)), 
-              format = "ascii",overwrite=TRUE)
+              format = format,overwrite=TRUE)
   }
 
 }
