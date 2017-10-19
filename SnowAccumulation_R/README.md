@@ -10,6 +10,8 @@ The purpose of 'snow_accumulation_melt_funcions' is to estimate the winter proce
 
 * [potential_snow_accumulation_rain_accumulation](#psara): determine the potential for snow and rain accumulation using temperature from either folder *write_weighted_temp_raster* or *average_weighted_temp_raster*. Two folders *potential_rain_accumulation* and *potential_snow_accumulation* are created to store the output rasters. potential_rain_accumulation indicates the amount of rain forms from precipitation. potential_snow_accumulation means the potential of snow formation. potential_rain_accumulation plus potential_snow_accumulation should equal to the given precipitation.
 
+* [interp_melt_const_raster](#imcr): interpolate melt constant based on the temperature and Julian day. A folder *snow_melt_constant* is automatically created to save the ouput. This function requirs *SnowMeltGrid_NoBlankLines_NoNegatives.txt*.
+
 * [potential_snow_melt](#psm): determine the potential for snow to melt. a folder *potential_snow_melt_raster* is automatically created to save the output. potential_snow_melt_raster indicates the potential for snow to melt assuming the amount of snow is infinite.
 
 * [integrate_potential_snowaccumulation_snow_melt](#ipssm): determine the true amount of snow melt and accumulation based on the potential values. This is done by integration of the results from *potential_snow_accumulation_rain_accumulation* and *potential_snow_melt*. This function looks for the folders *potential_snow_melt_raster* and *potential_snow_accumulation* in the given directory. The output of this function is saved in *final_accumulative_snow_accumulation_raster* and *final_snow_melt_raster*.
@@ -98,8 +100,15 @@ Rscript test.R
                                                   temp_foldername = 'weighted_temp_raster')
 ```
 
-
-
+## <a name="imcr"></a>interp_melt_const_raster (mods, work_directory, temp_folder_name, crs, format = "ascii", mods_format = "%Y%m%d")
+* mods: a list that indicates the **date** of the temperature files. It is also used to match the temperature files. To make sure mods can be correctly convert to Julian day, it is recommonded to name the temperature files as the format:
+ > [foo]_date: averaged_weighted_temp_20171019
+* mods_format: the format for date in mods. The default format is "%Y%m%d" which corresponse to year month and day. Please refer to the [as.Date](https://stat.ethz.ch/R-manual/R-devel/library/base/html/as.Date.html) documentation.
+* work_directory: the directory where 'temp_folder_name' is located. A new folder *snow_melt_constant* is created in this directory to save the output.
+* temp_folder_name: the folder name of the temperature raster. Either result from [average_weighted_temp_raster](#awtr) or [write_weighted_temp_raster](#wwtr) can be used.
+* crs: projection of the raster. Assumes all the raster files are in the same projection.
+* format: output raster format. Please refer to the [writeRaster](https://www.rdocumentation.org/packages/raster/versions/2.5-8/topics/writeRaster) documentation for more format options
+* *SnowMeltGrid_NoBlankLines_NoNegatives.txt* must be avaliable at the same path as this script.
 
 ## <a name="psm"></a>potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
 * metlt_constant: melt constant. eg: 5.787037e-08
@@ -109,7 +118,7 @@ Rscript test.R
 
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files must share same matching pattern.
-* work_directory: the directory at where the folder *temp_foldername* is located. A new folder *potential_snow_melt_raster* is create to store the potential snow melt raster
+* work_directory: the directory where the folder *temp_foldername* is located. A new folder *potential_snow_melt_raster* is create to store the potential snow melt raster
   * potential_snow_melt_raster: the potential amount of snow melt. 
 * temp_foldername: folder name of the temperature raster (either *weighted_temp_raster* or *averaged_weighted_temperature*)
 ```
