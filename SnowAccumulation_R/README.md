@@ -109,6 +109,16 @@ Rscript test.R
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * format: output raster format. Please refer to the [writeRaster](https://www.rdocumentation.org/packages/raster/versions/2.5-8/topics/writeRaster) documentation for more format options
 * *SnowMeltGrid_NoBlankLines_NoNegatives.txt* must be avaliable at the same path as this script.
+```
+    source("snow_accumulation_melt_functions.R")
+    cwd = getwd()
+    interp_melt_const_raster(mods = c('20010401','20010501','20010601'), 
+                         work_directory = cwd, 
+                         temp_folder_name = file.path('test', 'weighted_temp_raster'), 
+                         crs='+proj=longlat +datum=WGS84 +no_defs',
+                         format = 'ascii',
+                         mods_format = "%Y%m%d")
+```
 
 ## <a name="psm"></a>potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
 * metlt_constant: melt constant. eg: 5.787037e-08
