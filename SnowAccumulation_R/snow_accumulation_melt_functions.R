@@ -225,17 +225,17 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
 
 
 
-potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,T_melt_folder_name=NULL,format="GTiff",crs,mods,work_directory, temp_foldername, ldebug=FALSE){
+potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,melt_const_folder=NULL,format="GTiff",crs,mods,work_directory, temp_foldername, ldebug=FALSE){
 
-  if (is.null(metlt_constant) & is.null(T_melt) & is.null(T_melt_folder_name)){
-    stop("ERROR: specify T_melt_folder_name or melt_constant and T_melt")
+  if (is.null(metlt_constant) & is.null(T_melt) & is.null(melt_const_folder)){
+    stop("ERROR: specify melt_const_folder or melt_constant and T_melt")
   }
 
   ## using constant melt coef to calcualte potential snow melt
   else if (!is.null(metlt_constant) & !is.null(T_melt)){
 
-    if(!is.null(T_melt_folder_name)){
-      warning("Warning: A value for T_melt_folder_name is provided but ignored")
+    if(!is.null(melt_const_folder)){
+      warning("Warning: A value for melt_const_folder is provided but ignored")
     }
     
     for (mod in mods){
@@ -286,20 +286,22 @@ potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,T_melt_folder_name
                                                         }
 
   ## using interpolated melt coef raster to calcualte potential snow melt
-  else if (!is.null(T_melt_folder_name)){
+  else if (!is.null(melt_const_folder)){
 
-    T_melt_raster_path = file.path(work_directory, T_melt_folder_name)
+    T_melt_raster_path = file.path(work_directory, melt_const_folder)
     Temp_raster_path = file.path(work_directory, temp_foldername)
     save_path = file.path(work_directory, 'potential_snow_melt_raster')
 
-    ##check if T_melt_folder_name exist
+    ##check if melt_const_folder exist
     if (!dir.exists(T_melt_raster_path)){ 
       stop(paste("ERROR: directory does not exist. Directory:",T_melt_raster_path))
     }
-    ##check if T_melt_folder_name exist
-    if(!file.exists(temp_foldername)){
+
+    ##check if melt_const_folder exist
+    if(!file.exists(Temp_raster_path)){
       stop(paste("ERROR: file does not exist:", Temp_raster_path))
     }
+
     ##create output folder
     if(!file.exists(save_path)){
        dir.create(save_path, showWarnings = FALSE)
@@ -353,7 +355,7 @@ potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,T_melt_folder_name
   
   ## option not right, warning message
   else {
-    stop("ERROR: specify 1: T_melt_folder_name or 2: melt_constant and T_melt")
+    stop("ERROR: specify 1: melt_const_folder or 2: melt_constant and T_melt")
         }
 }
 
@@ -613,6 +615,7 @@ interp_melt_const_raster <- function ( mods,
                                        work_directory,
                                        temp_folder_name,
                                        crs,
+                                       table_directory,
                                        format = "ascii",
                                        mods_format = "%Y%m%d"){
   ### This function converts the temperature raster from the temperature_folder_name
@@ -680,7 +683,7 @@ interp_melt_const_raster <- function ( mods,
     melt_array[temp_over_melt_index] = 80.79308 # This is the maximum Grid_pot in the table
 
     #interp melt constant from table
-    melt_const = interp_melt_const( ref_file_directory = work_directory, 
+    melt_const = interp_melt_const( ref_file_directory = table_directory, 
                       ref_file_name = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt', 
                       temp = temp_array[temp_melt_index], 
                       jday = jday)

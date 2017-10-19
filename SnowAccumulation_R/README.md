@@ -100,15 +100,15 @@ Rscript test.R
                                                   temp_foldername = 'weighted_temp_raster')
 ```
 
-## <a name="imcr"></a>interp_melt_const_raster (mods, work_directory, temp_folder_name, crs, format = "ascii", mods_format = "%Y%m%d")
+## <a name="imcr"></a>interp_melt_const_raster (mods, work_directory, table_directory, temp_folder_name, crs, format = "ascii", mods_format = "%Y%m%d")
 * mods: a list that indicates the **date** of the temperature files. It is also used to match the temperature files. To make sure mods can be correctly convert to Julian day, it is recommonded to name the temperature files as the format:
  > [foo]_date: averaged_weighted_temp_20171019
 * mods_format: the format for date in mods. The default format is "%Y%m%d" which corresponse to year month and day. Please refer to the [as.Date](https://stat.ethz.ch/R-manual/R-devel/library/base/html/as.Date.html) documentation.
 * work_directory: the directory where 'temp_folder_name' is located. A new folder *snow_melt_constant* is created in this directory to save the output.
+* table_directory: the directory where *SnowMeltGrid_NoBlankLines_NoNegatives.txt* is located.
 * temp_folder_name: the folder name of the temperature raster. Either result from [average_weighted_temp_raster](#awtr) or [write_weighted_temp_raster](#wwtr) can be used.
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * format: output raster format. Please refer to the [writeRaster](https://www.rdocumentation.org/packages/raster/versions/2.5-8/topics/writeRaster) documentation for more format options
-* *SnowMeltGrid_NoBlankLines_NoNegatives.txt* must be avaliable at the same path as this script.
 ```
     source("snow_accumulation_melt_functions.R")
     cwd = getwd()
