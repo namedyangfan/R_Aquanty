@@ -4,19 +4,18 @@ The purpose of 'snow_accumulation_melt_funcions' is to estimate the winter proce
  
 ## Usage
 
-* write_weighted_temp_raster: calculate the weighted temperature raster from *Tmax* and *Tmin* Raster. A folder *weighted_temp_raster* is automatically created to save the output.
+* [write_weighted_temp_raster](#wwtr): calculate the weighted temperature raster from *Tmax* and *Tmin* Raster. A folder *weighted_temp_raster* is automatically created to save the output.
 
-* average_weighted_temp_raster: calcualte backward looking moving average of the weighted temprature raster. A folder *averaged_weighted_temperature* is automatically created to save the output.
+* [average_weighted_temp_raster](#awtr): calcualte backward looking moving average of the weighted temprature raster. A folder *averaged_weighted_temperature* is automatically created to save the output.
 
-* potential_snow_accumulation_rain_accumulation: determine the potential for snow and rain accumulation using temperature from either folder *write_weighted_temp_raster* or *average_weighted_temp_raster*. Two folders *potential_rain_accumulation* and *potential_snow_accumulation* are created to store the output rasters. potential_rain_accumulation indicates the amount of rain forms from precipitation. potential_snow_accumulation means the potential of snow formation. potential_rain_accumulation plus potential_snow_accumulation should equal to the given precipitation.
+* [potential_snow_accumulation_rain_accumulation](#psara): determine the potential for snow and rain accumulation using temperature from either folder *write_weighted_temp_raster* or *average_weighted_temp_raster*. Two folders *potential_rain_accumulation* and *potential_snow_accumulation* are created to store the output rasters. potential_rain_accumulation indicates the amount of rain forms from precipitation. potential_snow_accumulation means the potential of snow formation. potential_rain_accumulation plus potential_snow_accumulation should equal to the given precipitation.
 
-* potential_snow_melt: determine the potential for snow to melt. a folder *potential_snow_melt_raster* is automatically created to save the output. potential_snow_melt_raster indicates the potential for snow to melt assuming the amount of snow is infinite.
+* [potential_snow_melt](#psm): determine the potential for snow to melt. a folder *potential_snow_melt_raster* is automatically created to save the output. potential_snow_melt_raster indicates the potential for snow to melt assuming the amount of snow is infinite.
 
-* integrate_potential_snowaccumulation_snow_melt: determine the true amount of snow melt and accumulation based on the potential values. This is done by integration of the results from *potential_snow_accumulation_rain_accumulation* and *potential_snow_melt*. This function looks for the folders *potential_snow_melt_raster* and *potential_snow_accumulation* in the given directory. The output of this function is saved in *final_accumulative_snow_accumulation_raster* and *final_snow_melt_raster*.
+* [integrate_potential_snowaccumulation_snow_melt](#ipssm): determine the true amount of snow melt and accumulation based on the potential values. This is done by integration of the results from *potential_snow_accumulation_rain_accumulation* and *potential_snow_melt*. This function looks for the folders *potential_snow_melt_raster* and *potential_snow_accumulation* in the given directory. The output of this function is saved in *final_accumulative_snow_accumulation_raster* and *final_snow_melt_raster*.
 
-* combine_rain_snow: sum up the rain and snow melt raster for HGS model input. This function looks for the foders *potential_rain_accumulation* and *final_snow_melt_raster*. The output of this function is stored in *combine_rain_snowmelt*.
+* [combine_rain_snow](#crs): sum up the rain and snow melt raster for HGS model input. This function looks for the foders *potential_rain_accumulation* and *final_snow_melt_raster*. The output of this function is stored in *combine_rain_snowmelt*.
 
-* snow_depth_unit_conversion: convert the unit of the snow depth raster by multiplyng a constant
 
 ## Prerequisites
 ### Install R
@@ -33,7 +32,7 @@ Rscript test.R
 
 # Method
 
-## write_weighted_temp_raster(crs,mods,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef)
+## <a name="wwtr"></a>write_weighted_temp_raster(crs,mods,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef)
 * crs: projection of the raster. Assumes all the raster files are in the same projection
 * mods: a list of matching patterns, this pattern is used to look for temperature files. Assuming *tmin* and *tmax* have the same matching pattern.
 * tmax_file_path: folder directory of the maximum temperature raster 
@@ -53,7 +52,7 @@ Rscript test.R
                                weighted_coef =0.5)
 ```
 
-## average_weighted_temp_raster(x, mods, crs, weighted_temp_raster_folder_path, weighted_temp_raster_folder_name = "weighted_temp_raster", le = 2, ldebug = FALSE)
+## <a name="awtr"></a>average_weighted_temp_raster(x, mods, crs, weighted_temp_raster_folder_path, weighted_temp_raster_folder_name = "weighted_temp_raster", le = 2, ldebug = FALSE)
 * x: a pattern that is used to match the temperature raster files. *x* is the starting point for the backward looking average method. There must be at least *le* number of elements in *mods* before *x*.
 * mods: a list of patterns that is used to match all the temperature raster files. The order of mods determines which files are used to compute the backward average.
 * weighted_temp_raster_folder_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster ()**. 
@@ -73,7 +72,7 @@ Rscript test.R
 
 
 
-## potential_snow_accumulation_rain_accumulation (upper_T_thresh, lower_T_thresh, crs, mods, weighted_temp_raster_file_path, pcp_file_path, temp_foldername = 'weighted_temp_raster')
+## <a name="psara"></a>potential_snow_accumulation_rain_accumulation (upper_T_thresh, lower_T_thresh, crs, mods, weighted_temp_raster_file_path, pcp_file_path, temp_foldername = 'weighted_temp_raster')
 * upper_T_thresh: upper temperature threshold. rain is expected at temperature higher than this numer
 * lower_T_thresh: lower temperature threshold. snow is expected at temperature lower than this number
 * If the temperature is in between upper_T_thresh and lower_T_thresh, it is assumed that the precipitation is in a mixed form of snow and rain. The amount of rain can be estimated as: 
@@ -102,7 +101,7 @@ Rscript test.R
 
 
 
-## potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
+## <a name="psm"></a>potential_snow_melt (metlt_constant, T_melt, crs, mods, work_directory, temp_foldername)
 * metlt_constant: melt constant. eg: 5.787037e-08
 * T_melt: melting begins when temperature reach or above this temperature
 
@@ -125,7 +124,7 @@ Rscript test.R
 ```
 
 
-## integrate_potential_snowaccumulation_snow_melt (crs, mods, work_directory, sublimation_constant)
+## <a name="ipssm"></a>integrate_potential_snowaccumulation_snow_melt (crs, mods, work_directory, sublimation_constant)
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files must share same matching pattern.
 * work_directory: the directory at where the folders *potential_snow_melt_raster* and *potential_snow_accumulation* are located. The name of these two folders must not be changed. Two folders will be created in this directory to save the output:
@@ -142,7 +141,7 @@ Rscript test.R
 ```
 
 
-## combine_rain_snow (mods, save_filename='final_liquid_', work_directory, crs)
+## <a name="crs"></a>combine_rain_snow (mods, save_filename='final_liquid_', work_directory, crs)
 * mods: a list of matching patterns that is used to match all the *potential_rain_accumulation* and *final_snow_melt_raster* raster files.
 
 * work_directory: the directory of where the folders *potential_rain_accumulation* and *final_snow_melt_raster* are located.
