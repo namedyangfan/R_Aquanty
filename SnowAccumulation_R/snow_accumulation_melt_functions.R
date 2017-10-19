@@ -231,6 +231,7 @@ potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,T_melt_folder_name
     stop("ERROR: specify T_melt_folder_name or melt_constant and T_melt")
   }
 
+  ## using constant melt coef to calcualte potential snow melt
   else if (!is.null(metlt_constant) & !is.null(T_melt)){
 
     if(!is.null(T_melt_folder_name)){
@@ -282,8 +283,9 @@ potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,T_melt_folder_name
       writeRaster(potential_snow_melt_raster, file=paste("Potential_snow_melt_",mod, sep=""), format = "GTiff",overwrite=TRUE)
 
     }
-  }
+                                                        }
 
+  ## using interpolated melt coef raster to calcualte potential snow melt
   else if (!is.null(T_melt_folder_name)){
 
     T_melt_raster_path = file.path(work_directory, T_melt_folder_name)
@@ -348,6 +350,8 @@ potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,T_melt_folder_name
     }
     
                                     }
+  
+  ## option not right, warning message
   else {
     stop("ERROR: specify 1: T_melt_folder_name or 2: melt_constant and T_melt")
         }
@@ -575,6 +579,8 @@ interp_melt_const <- function (ref_file_directory,
                                 temp,
                                 jday
                                 ){
+  ### a function that does 3D interpolation based on the table ref_file_name
+  ## The table must has three columns X_temp, Y_Jday, and Grid_pot
 
   if (length(jday) != length(temp)){
     if (length(jday) == 1){
@@ -607,9 +613,16 @@ interp_melt_const_raster <- function ( mods,
                                        work_directory,
                                        temp_folder_name,
                                        crs,
-                                       output,
                                        format = "ascii",
                                        mods_format = "%Y%m%d"){
+  ### This function converts the temperature raster from the temperature_folder_name
+  ### to snow melt raster
+  ### based on the table values 
+  ## Assumptions:
+  ##  1. mods can be used as a unique identifier to look up each raster files
+  ##  2. mods must be is a date format as specified in mods_format. eg: 20171019
+  ##  3. file 'SnowMeltGrid_NoBlankLines_NoNegatives.txt' must be in the same directory as this script
+  ##  4. a folder 'snow_melt_constant' is created in the work_directory to save output
 
   temp_file_path = file.path(work_directory, temp_folder_name)
   snow_melt_table = 'SnowMeltGrid_NoBlankLines_NoNegatives.txt'

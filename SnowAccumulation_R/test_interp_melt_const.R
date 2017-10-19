@@ -61,7 +61,8 @@ interp_melt_const_raster(mods = c('20010401','20010501','20010601'),
                          work_directory = getwd(), 
                          temp_folder_name="test/weighted_temp_raster", 
                          crs='+proj=longlat +datum=WGS84 +no_defs',
-                         format = 'ascii')
+                         format = 'ascii',
+                         mods_format = "%Y%m%d")
 
 # potential_snow_melt(T_melt_folder_name = "snow_melt_constant",
 #                     format = "ascii",
