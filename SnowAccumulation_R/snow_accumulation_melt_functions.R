@@ -226,7 +226,7 @@ potential_snow_accumulation_rain_accumulation<-function(upper_T_thresh,
 
 
 
-potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,melt_const_folder=NULL,format="GTiff",crs,mods,work_directory, temp_foldername, ldebug=FALSE){
+potential_snow_melt<-function(mods,metlt_constant=NULL,T_melt=NULL,melt_const_folder=NULL,format="GTiff",crs,work_directory, temp_foldername, ldebug=FALSE){
 
   if (is.null(metlt_constant) & is.null(T_melt) & is.null(melt_const_folder)){
     stop("ERROR: specify melt_const_folder or melt_constant and T_melt")
@@ -349,7 +349,11 @@ potential_snow_melt<-function(metlt_constant=NULL,T_melt=NULL,melt_const_folder=
 
       potential_snow_melt_raster[] = T_array * snow_melt_array
 
-      writeRaster(potential_snow_melt_raster, file=file.path(save_path, paste0("Potential_snow_melt_",mod)), format = format,overwrite=TRUE)
+      results<-tryCatch({ 
+           writeRaster(potential_snow_melt_raster, file=file.path(save_path, paste0("Potential_snow_melt_",mod)), format = format,overwrite=TRUE)
+        }, error = function(err){
+          stop(paste("not able to write potential_snow_melt_raster for mod: ", mod))
+        })
     }
     
                                     }
@@ -618,7 +622,8 @@ interp_melt_const_raster <- function ( mods,
                                        crs,
                                        table_directory,
                                        format = "ascii",
-                                       mods_format = "%Y%m%d"){
+                                       mods_format = "%Y%m%d",
+                                       conversion_factor = 0.001){
   ### This function converts the temperature raster from the temperature_folder_name
   ### to snow melt raster
   ### based on the table values 
@@ -689,7 +694,7 @@ interp_melt_const_raster <- function ( mods,
                       temp = temp_array[temp_melt_index], 
                       jday = jday)
 
-    melt_array[temp_melt_index] = melt_const$z
+    melt_array[temp_melt_index] = melt_const$z * conversion_factor
     melt_raster[] = melt_array
 
     writeRaster(melt_raster, 
