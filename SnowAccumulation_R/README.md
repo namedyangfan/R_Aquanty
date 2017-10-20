@@ -31,6 +31,10 @@ A set of tests are provided: `test.R`. Run the following command in terminal:
 ```
 Rscript test.R
 ```
+It would be convinient to read **mods** from a text file. 'test_mods.R' provides this solution by reading **mods** from *mods.txt*. Notice *mods.txt* has to be located at the same directory as this scrip. To run 'test_mods.R':
+```
+Rscript test_mods.R
+```
 
 # Method
 

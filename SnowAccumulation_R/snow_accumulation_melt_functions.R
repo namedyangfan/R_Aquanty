@@ -1,5 +1,6 @@
 
 library(akima)
+library(raster)
 ### the below create weighted temperature raster that can be used to determine snow accumulation
 ### the input raster required are "T_max", "T_min"
 
