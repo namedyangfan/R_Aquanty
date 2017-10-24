@@ -44,7 +44,8 @@ parLapply(cl, mods[3:length(mods)], interp_melt_const_raster,
            temp_folder_name="averaged_weighted_temperature", 
            crs = crs,
            format = 'ascii',
-           mods_format = "%d_%m_%Y")
+           mods_format = "%d_%m_%Y",
+           conversion_factor = 1.15741e-8)
 
 
 parLapply(cl, mods[3:length(mods)], potential_snow_melt,
@@ -54,14 +55,22 @@ parLapply(cl, mods[3:length(mods)], potential_snow_melt,
           work_directory=file.path(cwd, 'test'),
           temp_foldername = 'averaged_weighted_temperature')
 
-stopCluster(cl)
-
 integrate_potential_snowaccumulation_snow_melt(crs = crs,
                                                mods = mods[3:length(mods)],
                                                work_directory = file.path(cwd, 'test'),
                                                sublimation_constant = 0.0)
 
-combine_rain_snow(mods = mods[3:length(mods)],
-                  save_filename='final_liquid_',
-                  work_directory = file.path(cwd, 'test'),
-                  crs = crs)
+parLapply(cl, mods[3:length(mods)], combine_rain_snow,
+          work_directory = file.path(cwd, 'test'),
+          crs = crs)
+
+parLapply(cl, mods[3:length(mods)], snow_depth_unit_conversion,
+          save_filename = 'final_snowdepth_',
+          work_directory = file.path(cwd, 'test'),
+          crs=crs,
+          conversion_factor = 86400 #m/s to m)
+          )
+
+
+stopCluster(cl)
+

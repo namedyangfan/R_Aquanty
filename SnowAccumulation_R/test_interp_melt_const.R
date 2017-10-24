@@ -34,7 +34,8 @@ interp_melt_const_raster(mods = mods[3:length(mods)],
                          temp_folder_name="averaged_weighted_temperature", 
                          crs = crs,
                          format = 'ascii',
-                         mods_format = "%d_%m_%Y")
+                         mods_format = "%d_%m_%Y",
+                         conversion_factor = 1.15741e-8)
 
 potential_snow_melt(melt_const_folder='snow_melt_constant',
                     format="ascii",

@@ -484,8 +484,7 @@ integrate_potential_snowaccumulation_snow_melt<-function(crs,
 combine_rain_snow <- function(mods,
                               save_filename='final_liquid_',
                               work_directory,
-                              crs,
-                              conversion_factor=1){
+                              crs){
   
   for (mod in mods){
     ### read the rain raster
@@ -547,7 +546,7 @@ snow_depth_unit_conversion <- function(mod,
                                        save_filename = 'final_snowdepth_',
                                        work_directory,
                                        crs,
-                                       conversion_factor=1){
+                                       conversion_factor = 86400){
   
   p = file.path(work_directory, 'final_accumulative_snow_accumulation_raster' )
   if (!dir.exists(p)){
@@ -623,7 +622,7 @@ interp_melt_const_raster <- function ( mods,
                                        table_directory,
                                        format = "ascii",
                                        mods_format = "%Y%m%d",
-                                       conversion_factor = 0.001){
+                                       conversion_factor = 1.15741e-8){
   ### This function converts the temperature raster from the temperature_folder_name
   ### to snow melt raster
   ### based on the table values 
@@ -694,7 +693,7 @@ interp_melt_const_raster <- function ( mods,
                       temp = temp_array[temp_melt_index], 
                       jday = jday)
 
-    melt_array[temp_melt_index] = melt_const$z * conversion_factor
+    melt_array[temp_melt_index] = melt_const$z * conversion_factor # e.g: convert mm/day to m/s
     melt_raster[] = melt_array
 
     writeRaster(melt_raster, 
