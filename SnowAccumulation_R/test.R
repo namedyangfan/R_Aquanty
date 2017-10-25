@@ -1,158 +1,64 @@
-############## This script calcualtes monthly snow accumulation raster
-#it requires the functions in "snow_accumulation_melt_functions"
-#the calculated raster can be read and plot using "PlotSnowRaster.R"
-rm(list = ls())
-library(raster)
-library(parallel)
+source("snow_accumulation_melt_functions.R")
+cwd = getwd()
+write_weighted_temp_raster(mods = c('01_04_2009','01_04_2009','01_04_2009'),
+                           crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+                           tmax_file_path = file.path(cwd, 'test', 'tmax'),
+                           tmin_file_path = file.path(cwd, 'test', 'tmin'),
+                           weighted_temp_raster_file_path = file.path(cwd, 'test'),
+                           weighted_coef =0.5)
 
-##the files below need to be provided
-tmax_file_path=c("D:/ARB/ARB_WeatherStation/CFS/Temperature/clip_wgs84/max")#need to be changed
-tmin_file_path=c("D:/ARB/ARB_WeatherStation/CFS/Temperature/clip_wgs84/min")#need to be changed
-pcp_file_path=c("C:/Users/FYang/Desktop/SSRB_Daily/Input/precip") ##in m/s
-crs=c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs")
+average_weighted_temp_raster(x = '03_04_2009',
+                             mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                             crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+                             weighted_temp_raster_folder_path = file.path(cwd, 'test'),
+                             weighted_temp_raster_folder_name = "weighted_temp_raster",
+                             le = 2)
 
+potential_snow_accumulation_rain_accumulation(upper_T_thresh = 0,
+                                              lower_T_thresh = 0,
+                                              crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+                                              mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                                              weighted_temp_raster_file_path = file.path(cwd, 'test'),
+                                              pcp_file_path = file.path(cwd, 'test', 'pcp'),
+                                              temp_foldername = 'weighted_temp_raster')
 
-##the directory that you want to save your data to
-saving_data_file_path=c("C:/Users/FYang/Desktop/SSRB_Daily/Input") #need to be changed
-weighted_coef=0.5
-upper_T_thresh=0
-lower_T_thresh=0
-## 1.157407e-07  ARB 300mm/month C  10mm/dayC   
-## 5.787037e-08   5mm/dayC 
-metlt_constant = 5.787037e-08
-sublimation_constant=0.0
-T_melt=0.0 ##melting temperature in degree C
+interp_melt_const_raster(mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                         work_directory = file.path(cwd, 'test'),
+                         table_directory = cwd,
+                         temp_folder_name="weighted_temp_raster", 
+                         crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+                         format = 'ascii',
+                         mods_format = "%d_%m_%Y",
+                         conversion_factor = 1.15741e-8)
 
-setwd("C:/Users/FYang/Desktop/R_Aquanty/SnowAccumulation_R") #need to be changed
-source_fucntion='snow_accumulation_melt_functions.R'
-source(source_fucntion)
+potential_snow_melt(metlt_constant = 5.787037e-08,
+                    T_melt = 0.0,
+                    crs =  c("+proj=longlat +datum=WGS84 +no_defs"),
+                    mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                    work_directory = file.path(cwd, 'test'),
+                    temp_foldername = "weighted_temp_raster")
 
-setwd("C:/Users/FYang/Desktop/SSRB_Daily/Input")
-mods = readLines("mods.txt")
+potential_snow_melt(melt_const_folder='snow_melt_constant',
+                    format="GTiff",
+                    crs =  c("+proj=longlat +datum=WGS84 +no_defs"),
+                    mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                    work_directory = file.path(cwd, 'test'),
+                    temp_foldername = 'weighted_temp_raster'
+                    )
 
+integrate_potential_snowaccumulation_snow_melt(crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+                                               mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                                               work_directory = file.path(cwd, 'test'),
+                                               sublimation_constant = 0.0)
 
-#Parallel ----------------------------------------------------------------
-no_cores<-detectCores()
+combine_rain_snow(mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                  save_filename='final_liquid_',
+                  work_directory = file.path(cwd, 'test'),
+                  crs = c("+proj=longlat +datum=WGS84 +no_defs"))
 
-cl<-makeCluster(no_cores)
-
-clusterExport(cl=cl,
-              varlist=c('upper_T_thresh',
-                              'lower_T_thresh',
-                               'crs',
-                               'mods',
-                               'saving_data_file_path',
-                               'pcp_file_path'),
-              envir = environment())
-
-a<-clusterEvalQ(cl, library(raster))
-
-
-# write_weighted_temp_raster(mods,
-#                            crs,
-#                            tmax_file_path,
-#                            tmin_file_path,
-#                            saving_data_file_path,
-#                            weighted_coef)
-
-# parLapply(cl, mods[3:length(mods)], 
-#        average_weighted_temp_raster, 
-#        mods = mods, 
-#        crs = crs, 
-#        weighted_temp_raster_file_path = saving_data_file_path)
-
-
-parLapply(cl, mods, potential_snow_accumulation_rain_accumulation,
-          upper_T_thresh=upper_T_thresh,
-          lower_T_thresh=lower_T_thresh,
-          crs=crs,
-          weighted_temp_raster_file_path=saving_data_file_path,
-          pcp_file_path=pcp_file_path,
-          temp_foldername = 'weighted_temp_raster')
-
-
-parLapply(cl, mods, potential_snow_melt,
-          T_melt=T_melt,
-          crs=crs,
-          metlt_constant=metlt_constant,
-          saving_data_file_path=saving_data_file_path,
-          temp_foldername = 'averaged_weighted_temperature')
-
-
-stopCluster(cl)
-
-
-# Single file -------------------------------------------------------------
-
-
-lapply(mods[3:length(mods)], 
-       average_weighted_temp_raster, 
-       mods = mods, 
-       crs = crs, 
-       weighted_temp_raster_file_path = saving_data_file_path)
-
-
-potential_snow_accumulation_rain_accumulation(upper_T_thresh,
-                                              lower_T_thresh,
-                                              crs=crs,
-                                              mods,
-                                              weighted_temp_raster_file_path=saving_data_file_path,
-                                              pcp_file_path=pcp_file_path,
-                                              temp_foldername = 'averaged_weighted_temperature')
-
-# potential_snow_melt(metlt_constant,
-#                     T_melt,
-#                     crs,
-#                     mods,
-#                     saving_data_file_path)
-
-integrate_potential_snowaccumulation_snow_melt(crs,
-                                               mods,
-                                               saving_data_file_path,
-                                               pcp_file_path,
-                                               sublimation_constant)
-
-# Combine rain snow -------------------------------------------------------
-
-no_cores<-detectCores()
-
-cl<-makeCluster(no_cores)
-
-clusterExport(cl=cl,
-              varlist=c('upper_T_thresh',
-                        'lower_T_thresh',
-                        'crs',
-                        'mods',
-                        'saving_data_file_path',
-                        'pcp_file_path'),
-              envir = environment())
-
-a<-clusterEvalQ(cl, library(raster))
-
-# combine_rain_snow(mods,
-#                   save_filename='final_liquid_',
-#                   saving_data_file_path,
-#                   crs=crs)
-# 
-parLapply(cl, mods, combine_rain_snow,
-          save_filename='final_liquid_',
-          saving_data_file_path=saving_data_file_path,
-          crs=crs,
+lapply(c('01_04_2009','02_04_2009','03_04_2009'), snow_depth_unit_conversion,
+          save_filename = 'final_snowdepth_',
+          work_directory = file.path(cwd, 'test'),
+          crs = c("+proj=longlat +datum=WGS84 +no_defs"),
           conversion_factor = 86400 #m/s to m
-          )
-
-
-parLapply(cl, mods, snow_depth_unit_conversion,
-          save_filename= 'final_snowdepth_',
-          saving_data_file_path=saving_data_file_path,
-          crs=crs,
-          conversion_factor = 86400 #m/s to m
-          )
-
-
-
-stopCluster(cl)
-
-
-
-
+      )

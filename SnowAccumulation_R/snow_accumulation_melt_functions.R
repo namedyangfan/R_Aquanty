@@ -542,42 +542,44 @@ combine_rain_snow <- function(mods,
   
 }
 
-snow_depth_unit_conversion <- function(mod,
+snow_depth_unit_conversion <- function(mods,
                                        save_filename = 'final_snowdepth_',
                                        work_directory,
                                        crs,
                                        conversion_factor = 86400){
   
-  p = file.path(work_directory, 'final_accumulative_snow_accumulation_raster' )
-  if (!dir.exists(p)){
-    stop(paste("ERROR: directory does not exist. Directory:",p))
+  for (mod in mods){
+    p = file.path(work_directory, 'final_accumulative_snow_accumulation_raster' )
+    if (!dir.exists(p)){
+      stop(paste("ERROR: directory does not exist. Directory:",p))
+    }
+    setwd(p)
+    
+    my_raster<- list.files( path = p, pattern=mod)
+    if(length(my_raster)==0){
+      print(paste("pattern:", mod))
+      stop(paste("ERROR: no file matches the pattern in the folder:", p))
+    }
+    
+    results<-tryCatch({ 
+       snowdepth_raster<-raster(my_raster, crs=crs)
+    }, error = function(err){
+      stop(paste("not able to open raster",my_raster,"in folder: ",p))
+    })
+    
+    snowdepth_array<-snowdepth_raster[]
+    
+    
+    snowdepth_raster[] = snowdepth_array * conversion_factor # convert the unit of snow depth
+    
+    setwd("../")
+    dir.create("final_snowdepth_unit_conversion",showWarnings = FALSE)
+    setwd("final_snowdepth_unit_conversion")
+    
+    writeRaster(snowdepth_raster, 
+                file=paste(save_filename,mod, sep=""), 
+                format = "ascii",overwrite=TRUE)
   }
-  setwd(p)
-  
-  my_raster<- list.files( path = p, pattern=mod)
-  if(length(my_raster)==0){
-    print(paste("pattern:", mod))
-    stop(paste("ERROR: no file matches the pattern in the folder:", p))
-  }
-  
-  results<-tryCatch({ 
-     snowdepth_raster<-raster(my_raster, crs=crs)
-  }, error = function(err){
-    stop(paste("not able to open raster",my_raster,"in folder: ",p))
-  })
-  
-  snowdepth_array<-snowdepth_raster[]
-  
-  
-  snowdepth_raster[] = snowdepth_array * conversion_factor # convert the unit of snow depth
-  
-  setwd("../")
-  dir.create("final_snowdepth_unit_conversion",showWarnings = FALSE)
-  setwd("final_snowdepth_unit_conversion")
-  
-  writeRaster(snowdepth_raster, 
-              file=paste(save_filename,mod, sep=""), 
-              format = "ascii",overwrite=TRUE)
 }
 
 interp_melt_const <- function (ref_file_directory,

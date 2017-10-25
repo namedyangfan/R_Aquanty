@@ -42,7 +42,7 @@ Rscript test_mods.R
 
 ## <a name="wwtr"></a>write_weighted_temp_raster(crs,mods,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef)
 * crs: projection of the raster. Assumes all the raster files are in the same projection
-* mods: a list of matching patterns, this pattern is used to look for temperature files. Assuming *tmin* and *tmax* have the same matching pattern.
+* mods: a list of matching patterns, this pattern is used to look for temperature files. Assuming *tmin* and *tmax* have the same matching pattern. It is recommonded to use *date* as the matching pattern for the temperature file.
 * tmax_file_path: folder directory of the maximum temperature raster 
 * tmin_file_path: folder directory of the minimum temperature raster 
 * weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* can be created.
@@ -62,7 +62,7 @@ Rscript test_mods.R
 
 ## <a name="awtr"></a>average_weighted_temp_raster(x, mods, crs, weighted_temp_raster_folder_path, weighted_temp_raster_folder_name = "weighted_temp_raster", le = 2, ldebug = FALSE)
 * x: a pattern that is used to match the temperature raster files. *x* is the starting point for the backward looking average method. There must be at least *le* number of elements in *mods* before *x*.
-* mods: a list of patterns that is used to match all the temperature raster files. The order of mods determines which files are used to compute the backward average.
+* mods: a list of patterns that is used to match all the temperature raster files. The order of mods determines which files are used to compute the backward average. It is recommonded to use *date* as the matching pattern for the temperature file.
 * weighted_temp_raster_folder_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster ()**. 
   * averaged_weighted_temperature: this folder is automaticly created to save the function output
 * weighted_temp_raster_folder_name: the folder name of where the temperature raster files are located. weighted_temp_raster_folder_name is set to *weighted_temp_raster* by default.
@@ -88,7 +88,7 @@ Rscript test_mods.R
   > (T - lower_T_thresh) / (upper_T_thresh - lower_T_thresh) * precipitation
 
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
-* mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files have to share same matching pattern.
+* mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files have to share same matching pattern. It is recommonded to use *date* as the matching pattern.
 * weighted_temp_raster_file_path: the directory where the folder *weighted_temp_raster* is created. *weighted_temp_raster* is a folder that contains the output from the function **write_weighted_temp_raster()**. The function creates two folders automatically:
   * potential_rain_accumulation: rainfall raster
   * potential_snow_accumulation: potential snow accumulation raster. (This raster will be combined with the potential_snow_melt_raster to calcualte snow depth. See **integrate_potential_snowaccumulation_snow_melt** for more explanation)
@@ -109,7 +109,7 @@ Rscript test_mods.R
 ## <a name="imcr"></a>interp_melt_const_raster (mods, work_directory, table_directory, temp_folder_name, crs, format = "ascii", mods_format = "%Y%m%d", conversion_factor = 1.15741e-8)
 * mods: a list that indicates the **date** of the temperature files. It is also used to match the temperature files. To make sure mods can be correctly convert to Julian day, it is recommonded to name the temperature files as the format:
  > [foo]_date: averaged_weighted_temp_20171019
-* mods_format: the format for date in mods. The default format is "%Y%m%d" which corresponse to year month and day. Please refer to the [as.Date](https://stat.ethz.ch/R-manual/R-devel/library/base/html/as.Date.html) documentation.
+* mods_format: the format for date in mods. The default format is **%Y%m%d** which corresponse to year month and day. Please refer to the [as.Date](https://stat.ethz.ch/R-manual/R-devel/library/base/html/as.Date.html) documentation.
 * work_directory: the directory where 'temp_folder_name' is located. A new folder *snow_melt_constant* is created in this directory to save the output.
 * table_directory: the directory where *SnowMeltGrid_NoBlankLines_NoNegatives.txt* is located.
 * temp_folder_name: the folder name of the temperature raster. Either result from [average_weighted_temp_raster](#awtr) or [write_weighted_temp_raster](#wwtr) can be used.
@@ -135,7 +135,7 @@ Rscript test_mods.R
 For the spatial varying raster option, *melt_const_folder* need to be specified. Potential snow melt is calcualted as:
   >potential snow melt = metlt_constant * Temperature
 
-* mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files must share same matching pattern.
+* mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files must share same matching pattern. It is recommonded to use *date* as the matching pattern.
 * metlt_constant: melt constant. eg: 5.787037e-08
 * T_melt: melting begins when temperature reach or above this temperature
 * melt_const_folder: folder name of the melt constant raster
@@ -157,7 +157,7 @@ For the spatial varying raster option, *melt_const_folder* need to be specified.
 
 ## <a name="ipssm"></a>integrate_potential_snowaccumulation_snow_melt (crs, mods, work_directory, sublimation_constant)
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
-* mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files must share same matching pattern.
+* mods: a list of matching patterns that is used to match all the temperature and precipitation raster files. The temperature and precipitation files must share same matching pattern. It is recommonded to use *date* as the matching pattern.
 * work_directory: the directory at where the folders *potential_snow_melt_raster* and *potential_snow_accumulation* are located. The name of these two folders must not be changed. Two folders will be created in this directory to save the output:
   * final_accumulative_snow_accumulation_raster: snow depth raster
   * final_snow_melt_raster: snow melt raster

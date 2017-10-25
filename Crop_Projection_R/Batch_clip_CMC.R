@@ -51,21 +51,21 @@ cmc_wgs84_batchcrop<-function(cmc_files){
 }
 
 
-setwd("C:/Users/fyang/Desktop")
+setwd("F:/Transfer/Tmin_Tmax")
 
 ##set up the reference raster file
-ref_raster<-raster("final_pcp_monthly_ave_2009_2013_12.asc",crs="+proj=longlat +datum=WGS84 +no_defs")
+ref_raster<-raster("F:/Transfer/v8_10km/input/averaged_weighted_temperature/averaged_weighted_temp01_01_2009.asc",crs="+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs")
 
 #directory of the CMC data 
-wd=c("D:/ARB/ARB_WeatherStation/CMC_Snow/CMC_WGS84")
+wd=c("F:/Transfer/Tmin_Tmax")
 
-my_raster<- list.files(wd, pattern='\\.tif$', full.names=TRUE,include.dirs = TRUE,recursive = TRUE) ############## This is to read your raster as a list
+my_raster<- list.files(wd, pattern='\\.asc$', full.names=TRUE,include.dirs = TRUE,recursive = TRUE) ############## This is to read your raster as a list
 
 #projection of the cmc data 
-cmc_prj=("+proj=longlat +datum=WGS84 +no_defs")
+cmc_prj=("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs")
 
 #directory of file that need to be saved
-save_file_directory=c("C:/Users/fyang/Desktop/CMC_SSRB")
+save_file_directory=c("F:/Transfer/Tmin_Tmax_10km")
 
 
 
