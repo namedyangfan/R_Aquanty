@@ -39,13 +39,13 @@ Rscript test.R
 ```
 It would be convinient to read **mods** from a text file. *test_interp_melt_const.R* provides this solution by reading **mods** from *mods.txt*. Notice *mods.txt* has to be located at the same directory as this scrip. To run *test_mods.R*:
 ```
-Rscript test_mods.R
+Rscript test_interp_melt_const.R
 ```
 A paralleled version of *test_interp_melt_const.R* is avaliable as *test_interp_melt_const_parallel.R*:
 ```
 Rscript test_interp_melt_const_parallel.R
 ```
-**It is recommonded to delete intermedia folders before each testing**
+**It is recommonded to delete intermediate folders before each testing**
 # Method
 
 ## <a name="wwtr"></a>write_weighted_temp_raster(crs,mods,tmax_file_path,tmin_file_path,weighted_temp_raster_file_path,weighted_coef)
@@ -174,7 +174,8 @@ For the spatial varying raster option, *melt_const_folder* need to be specified.
                         crs =  c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
                         mods = c('01_04_2009','02_04_2009','03_04_2009'),
                         work_directory = file.path(cwd, 'test'),
-                        temp_foldername = 'weighted_temp_raster')
+                        temp_foldername = 'weighted_temp_raster'
+                        )
 ```
 
 ## <a name="ipssm"></a>integrate_potential_snowaccumulation_snow_melt (crs, mods, work_directory, sublimation_constant)
@@ -187,8 +188,8 @@ For the spatial varying raster option, *melt_const_folder* need to be specified.
 ```
     source("snow_accumulation_melt_functions.R")
     cwd = getwd()
-    integrate_potential_snowaccumulation_snow_melt(crs = c("+proj=longlat +datum=WGS84 +no_defs"),
-                                                   mods = c('_1.','_2.','_3.'),
+    integrate_potential_snowaccumulation_snow_melt(crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
+                                                   mods = c('01_04_2009','02_04_2009','03_04_2009'),
                                                    work_directory = file.path(cwd, 'test'),
                                                    sublimation_constant = 0.0)
 ```
@@ -204,10 +205,10 @@ A folder *combine_rain_snowmelt* is created to store the output:
 ```
     source("snow_accumulation_melt_functions.R")
     cwd = getwd()
-    combine_rain_snow(mods = c('_1.','_2.','_3.'),
+    combine_rain_snow(mods = c('01_04_2009','02_04_2009','03_04_2009'),
                       save_filename='final_liquid_',
                       work_directory = file.path(cwd, 'test'),
-                      crs = c("+proj=longlat +datum=WGS84 +no_defs"))
+                      crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"))
 ```
 
 ## <a name="crs"></a>snow_depth_unit_conversion (mods, save_filename = 'final_snowdepth_', work_directory, crs, conversion_factor=86400)
@@ -216,3 +217,10 @@ A folder *combine_rain_snowmelt* is created to store the output:
 * workdirectory: directory of where the folders *final_accumulative_snow_accumulation_raster*
 * crs: projection of the raster. Assumes all the raster files are in the same projection.
 * conversion_factor: a constant multiplier. e.g: to convert snow depth from *m/s* to *m* for daily simulation, *conversion_factor* should be set to 86400.
+```
+    snow_depth_unit_conversion(mods = c('01_04_2009','02_04_2009','03_04_2009'),
+                              save_filename = 'final_snowdepth_',
+                              work_directory = file.path(cwd, 'test'),
+                              crs = c("+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs"),
+                              conversion_factor = 86400 )
+```
