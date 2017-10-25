@@ -4,12 +4,12 @@ cwd= getwd()
 mods = readLines("mods.txt")
 crs = '+proj=utm +zone=12 +datum=WGS84 +units=m +no_defs'
 
-# write_weighted_temp_raster(mods = mods,
-#                            crs = c("+proj=longlat +datum=WGS84 +no_defs"),
-#                            tmax_file_path = file.path(cwd, 'test', 'tmax'),
-#                            tmin_file_path = file.path(cwd, 'test', 'tmin'),
-#                            weighted_temp_raster_file_path = file.path(cwd, 'test'),
-#                            weighted_coef =0.5)
+write_weighted_temp_raster(mods = mods,
+                           crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+                           tmax_file_path = file.path(cwd, 'test', 'tmax'),
+                           tmin_file_path = file.path(cwd, 'test', 'tmin'),
+                           weighted_temp_raster_file_path = file.path(cwd, 'test'),
+                           weighted_coef =0.5)
 
 lapply(mods[3:length(mods)],
           average_weighted_temp_raster,
@@ -54,3 +54,9 @@ combine_rain_snow(mods = mods[3:length(mods)],
                   save_filename='final_liquid_',
                   work_directory = file.path(cwd, 'test'),
                   crs = crs)
+
+snow_depth_unit_conversion(mods = mods[3:length(mods)],
+                          save_filename = 'final_snowdepth_',
+                          work_directory = file.path(cwd, 'test'),
+                          crs = crs,
+                          conversion_factor = 86400)

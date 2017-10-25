@@ -22,6 +22,14 @@ a<-clusterEvalQ(cl, library(raster))
 
 ##
 
+parLapply(cl, mods,
+          write_weighted_temp_raster,
+           crs = c("+proj=longlat +datum=WGS84 +no_defs"),
+           tmax_file_path = file.path(cwd, 'test', 'tmax'),
+           tmin_file_path = file.path(cwd, 'test', 'tmin'),
+           weighted_temp_raster_file_path = file.path(cwd, 'test'),
+           weighted_coef =0.5)
+
 parLapply(cl, mods[3:length(mods)], 
        average_weighted_temp_raster, 
        mods = mods, 
@@ -70,7 +78,6 @@ parLapply(cl, mods[3:length(mods)], snow_depth_unit_conversion,
           crs=crs,
           conversion_factor = 86400 #m/s to m)
           )
-
 
 stopCluster(cl)
 
