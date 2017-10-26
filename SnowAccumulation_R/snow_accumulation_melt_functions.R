@@ -54,7 +54,8 @@ average_weighted_temp_raster<-function(x,
                                        weighted_temp_raster_folder_path,
                                        weighted_temp_raster_folder_name = "weighted_temp_raster",
                                        le = 2,
-                                       ldebug = FALSE){
+                                       ldebug = FALSE,
+                                       format = "GTiff"){
   
   
   file_path = file.path(weighted_temp_raster_folder_path,weighted_temp_raster_folder_name)
@@ -63,10 +64,13 @@ average_weighted_temp_raster<-function(x,
     stop("ERROR: directory does not exist")
     }
   # f_names get all the files that match the modes in a sequential order
-  f_names = sapply(mods, function(x){
+
+  if (!(exists("f_names"))){
+      f_names <<- sapply(mods, function(x){
                     list.files(path= file_path, pattern = x, full.names = TRUE )},
                     USE.NAMES = FALSE)
-  
+  }
+
   #xindex: locate the index of file x, so we knew which other files are required to calcualte the average  
   x_index=which(mods == x)
 
@@ -100,7 +104,7 @@ average_weighted_temp_raster<-function(x,
     setwd(weighted_temp_raster_folder_path)
     dir.create("averaged_weighted_temperature",showWarnings = FALSE)
     writeRaster(r_mean, 
-                file=paste("./averaged_weighted_temperature/averaged_weighted_temp",x, sep=""), format = "ascii",overwrite=TRUE)
+                file=paste("./averaged_weighted_temperature/averaged_weighted_temp",x, sep=""), format = format,overwrite=TRUE)
     return(TRUE)
 }
 
